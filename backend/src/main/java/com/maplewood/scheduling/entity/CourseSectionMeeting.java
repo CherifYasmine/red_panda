@@ -12,6 +12,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,12 +35,17 @@ public class CourseSectionMeeting {
     private CourseSection section;
     
     @Column(name = "day_of_week", nullable = false)
+    @Min(value = 1, message = "Day of week must be 1-5 (Monday-Friday)")
+    @Max(value = 5, message = "Day of week must be 1-5 (Monday-Friday)")
+    @NotNull(message = "Day of week cannot be null")
     private Integer dayOfWeek; // 1-5 (Monday-Friday)
     
     @Column(name = "start_time", nullable = false)
+    @NotNull(message = "Start time cannot be null")
     private LocalTime startTime;
     
     @Column(name = "end_time", nullable = false)
+    @NotNull(message = "End time cannot be null")
     private LocalTime endTime;
     
     /**

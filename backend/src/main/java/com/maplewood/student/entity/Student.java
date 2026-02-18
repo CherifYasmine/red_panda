@@ -42,7 +42,7 @@ public class Student {
     private String lastName;
     
     @Column(unique = true, length = 100)
-    @Email
+    @Email(message = "Email should be valid")
     private String email;
     
     @Column(nullable = false, name = "grade_level")
