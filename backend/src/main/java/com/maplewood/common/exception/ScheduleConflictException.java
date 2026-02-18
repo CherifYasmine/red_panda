@@ -1,4 +1,4 @@
-package com.maplewood.api.exception;
+package com.maplewood.common.exception;
 
 /**
  * Exception for schedule conflicts (409 Conflict)

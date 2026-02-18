@@ -1,4 +1,4 @@
-package com.maplewood.api.exception;
+package com.maplewood.common.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

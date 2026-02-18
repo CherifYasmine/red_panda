@@ -1,4 +1,4 @@
-package com.maplewood.api.exception;
+package com.maplewood.common.exception;
 
 /**
  * Base exception for enrollment validation errors (400 Bad Request)
