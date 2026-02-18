@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.enums.StudentStatus;
+import com.maplewood.common.exception.DuplicateResourceException;
+import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentRepository;
 
@@ -31,7 +33,7 @@ public class StudentService {
      */
     public Student getStudentById(Long id) {
         return studentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Student not found with ID: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Student", id));
     }
     
     /**
@@ -39,7 +41,7 @@ public class StudentService {
      */
     public Student getStudentByEmail(String email) {
         return studentRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Student not found with email: " + email));
+            .orElseThrow(() -> new ResourceNotFoundException("Student", "email", email));
     }
     
     /**
@@ -47,7 +49,7 @@ public class StudentService {
      */
     public Student getStudentByName(String firstName, String lastName) {
         return studentRepository.findByFirstNameAndLastName(firstName, lastName)
-            .orElseThrow(() -> new RuntimeException("Student not found with name: " + firstName + " " + lastName));
+            .orElseThrow(() -> new ResourceNotFoundException("Student", "name", firstName + " " + lastName));
     }
     
     /**
@@ -76,7 +78,7 @@ public class StudentService {
      */
     public Student createStudent(Student student) {
         if (studentRepository.existsByEmail(student.getEmail())) {
-            throw new RuntimeException("Email already exists: " + student.getEmail());
+            throw new DuplicateResourceException("Student", "email", student.getEmail());
         }
         return studentRepository.save(student);
     }
@@ -95,7 +97,7 @@ public class StudentService {
         }
         if (studentDetails.getEmail() != null && !studentDetails.getEmail().equals(student.getEmail())) {
             if (studentRepository.existsByEmail(studentDetails.getEmail())) {
-                throw new RuntimeException("Email already exists: " + studentDetails.getEmail());
+                throw new DuplicateResourceException("Student", "email", studentDetails.getEmail());
             }
             student.setEmail(studentDetails.getEmail());
         }
@@ -120,7 +122,7 @@ public class StudentService {
      */
     public void deleteStudent(Long id) {
         if (!studentRepository.existsById(id)) {
-            throw new RuntimeException("Student not found with ID: " + id);
+            throw new ResourceNotFoundException("Student", id);
         }
         studentRepository.deleteById(id);
     }

@@ -22,6 +22,8 @@ import com.maplewood.common.mapper.TeacherMapper;
 import com.maplewood.school.entity.Teacher;
 import com.maplewood.school.service.TeacherService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for Teacher endpoints
  * Provides CRUD operations for teachers
@@ -76,7 +78,7 @@ public class TeacherController {
      * POST create new teacher
      */
     @PostMapping
-    public ResponseEntity<TeacherDTO> createTeacher(@RequestBody TeacherDTO teacherDTO) {
+    public ResponseEntity<TeacherDTO> createTeacher(@Valid @RequestBody TeacherDTO teacherDTO) {
         Teacher entity = TeacherMapper.toEntity(teacherDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(TeacherMapper.toDTO(teacherService.createTeacher(entity)));
     }
@@ -85,7 +87,7 @@ public class TeacherController {
      * PUT update teacher
      */
     @PutMapping("/{id}")
-    public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id, @RequestBody TeacherDTO teacherDTO) {
+    public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id, @Valid @RequestBody TeacherDTO teacherDTO) {
         Teacher entity = TeacherMapper.toEntity(teacherDTO);
         return ResponseEntity.ok(TeacherMapper.toDTO(teacherService.updateTeacher(id, entity)));
     }

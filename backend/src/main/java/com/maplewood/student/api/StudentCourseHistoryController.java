@@ -1,7 +1,6 @@
 package com.maplewood.student.api;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.maplewood.common.dto.StudentCourseHistoryDTO;
 import com.maplewood.common.mapper.StudentCourseHistoryMapper;
+import com.maplewood.common.util.DTOConverter;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.entity.StudentCourseHistory;
 import com.maplewood.student.service.StudentCourseHistoryService;
@@ -41,10 +41,7 @@ public class StudentCourseHistoryController {
      */
     @GetMapping("/_all")
     public ResponseEntity<List<StudentCourseHistoryDTO>> getAllCourseHistories() {
-        return ResponseEntity.ok(courseHistoryService.getAllCourseHistories()
-            .stream()
-            .map(StudentCourseHistoryMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseHistoryService.getAllCourseHistories(), StudentCourseHistoryMapper::toDTO));
     }
     
     /**
@@ -55,7 +52,7 @@ public class StudentCourseHistoryController {
         @PathVariable Long studentId,
         @PathVariable Long id
     ) {
-        return ResponseEntity.ok(StudentCourseHistoryMapper.toDTO(courseHistoryService.getCourseHistoryById(id)));
+        return ResponseEntity.ok(DTOConverter.convert(courseHistoryService.getCourseHistoryById(id), StudentCourseHistoryMapper::toDTO));
     }
     
     /**
@@ -64,10 +61,7 @@ public class StudentCourseHistoryController {
     @GetMapping
     public ResponseEntity<List<StudentCourseHistoryDTO>> getCourseHistoryByStudent(@PathVariable Long studentId) {
         Student student = studentService.getStudentById(studentId);
-        return ResponseEntity.ok(courseHistoryService.getCourseHistoryByStudent(student)
-            .stream()
-            .map(StudentCourseHistoryMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseHistoryService.getCourseHistoryByStudent(student), StudentCourseHistoryMapper::toDTO));
     }
     
     /**
@@ -76,10 +70,7 @@ public class StudentCourseHistoryController {
     @GetMapping("/passed")
     public ResponseEntity<List<StudentCourseHistoryDTO>> getPassedCoursesForStudent(@PathVariable Long studentId) {
         Student student = studentService.getStudentById(studentId);
-        return ResponseEntity.ok(courseHistoryService.getPassedCoursesForStudent(student)
-            .stream()
-            .map(StudentCourseHistoryMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseHistoryService.getPassedCoursesForStudent(student), StudentCourseHistoryMapper::toDTO));
     }
     
     /**

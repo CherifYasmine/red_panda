@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.enums.CourseHistoryStatus;
+import com.maplewood.common.exception.DuplicateResourceException;
+import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.entity.StudentCourseHistory;
@@ -34,7 +36,7 @@ public class StudentCourseHistoryService {
      */
     public StudentCourseHistory getCourseHistoryById(Long id) {
         return studentCourseHistoryRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Course history not found with ID: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("StudentCourseHistory", id));
     }
     
     /**
@@ -56,7 +58,7 @@ public class StudentCourseHistoryService {
      */
     public StudentCourseHistory getCourseHistoryForStudent(Student student, Course course) {
         return studentCourseHistoryRepository.findByStudentAndCourse(student, course)
-            .orElseThrow(() -> new RuntimeException("Course history not found for student " + student.getId() + " and course " + course.getId()));
+            .orElseThrow(() -> new ResourceNotFoundException("StudentCourseHistory", "studentId/courseId", student.getId() + "/" + course.getId()));
     }
     
     /**
@@ -85,7 +87,7 @@ public class StudentCourseHistoryService {
         );
         
         if (exists) {
-            throw new RuntimeException("Course history already exists for this student and course");
+            throw new DuplicateResourceException("StudentCourseHistory", "studentId/courseId", history.getStudent().getId() + "/" + history.getCourse().getId());
         }
         
         return studentCourseHistoryRepository.save(history);
@@ -109,7 +111,7 @@ public class StudentCourseHistoryService {
      */
     public void deleteCourseHistory(Long id) {
         if (!studentCourseHistoryRepository.existsById(id)) {
-            throw new RuntimeException("Course history not found with ID: " + id);
+            throw new ResourceNotFoundException("StudentCourseHistory", id);
         }
         studentCourseHistoryRepository.deleteById(id);
     }

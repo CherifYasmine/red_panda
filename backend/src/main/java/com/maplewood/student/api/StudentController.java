@@ -1,7 +1,6 @@
 package com.maplewood.student.api;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.maplewood.common.dto.StudentDTO;
 import com.maplewood.common.enums.StudentStatus;
 import com.maplewood.common.mapper.StudentMapper;
+import com.maplewood.common.util.DTOConverter;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.service.StudentService;
 
@@ -42,10 +42,7 @@ public class StudentController {
      */
     @GetMapping
     public ResponseEntity<List<StudentDTO>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents()
-            .stream()
-            .map(StudentMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(studentService.getAllStudents(), StudentMapper::toDTO));
     }
     
     /**
@@ -53,7 +50,7 @@ public class StudentController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<StudentDTO> getStudentById(@PathVariable Long id) {
-        return ResponseEntity.ok(StudentMapper.toDTO(studentService.getStudentById(id)));
+        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentById(id), StudentMapper::toDTO));
     }
     
     /**
@@ -61,7 +58,7 @@ public class StudentController {
      */
     @GetMapping("/search/email")
     public ResponseEntity<StudentDTO> getStudentByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(StudentMapper.toDTO(studentService.getStudentByEmail(email)));
+        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentByEmail(email), StudentMapper::toDTO));
     }
     
     /**
@@ -72,7 +69,7 @@ public class StudentController {
         @RequestParam String firstName,
         @RequestParam String lastName
     ) {
-        return ResponseEntity.ok(StudentMapper.toDTO(studentService.getStudentByName(firstName, lastName)));
+        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentByName(firstName, lastName), StudentMapper::toDTO));
     }
     
     /**
@@ -80,10 +77,7 @@ public class StudentController {
      */
     @GetMapping("/search/first-name")
     public ResponseEntity<List<StudentDTO>> getStudentsByFirstName(@RequestParam String firstName) {
-        return ResponseEntity.ok(studentService.getStudentsByFirstName(firstName)
-            .stream()
-            .map(StudentMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByFirstName(firstName), StudentMapper::toDTO));
     }
     
     /**
@@ -91,10 +85,7 @@ public class StudentController {
      */
     @GetMapping("/grade-level/{gradeLevel}")
     public ResponseEntity<List<StudentDTO>> getStudentsByGradeLevel(@PathVariable Integer gradeLevel) {
-        return ResponseEntity.ok(studentService.getStudentsByGradeLevel(gradeLevel)
-            .stream()
-            .map(StudentMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByGradeLevel(gradeLevel), StudentMapper::toDTO));
     }
     
     /**
@@ -102,10 +93,7 @@ public class StudentController {
      */
     @GetMapping("/status/{status}")
     public ResponseEntity<List<StudentDTO>> getStudentsByStatus(@PathVariable StudentStatus status) {
-        return ResponseEntity.ok(studentService.getStudentsByStatus(status)
-            .stream()
-            .map(StudentMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByStatus(status), StudentMapper::toDTO));
     }
     
     /**

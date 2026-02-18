@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.maplewood.common.exception.DuplicateResourceException;
 import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.entity.Specialization;
@@ -36,7 +37,7 @@ public class SpecializationService {
      */
     public Specialization getSpecializationById(Long id) {
         return specializationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Specialization not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Specialization", id));
     }
     
     /**
@@ -45,7 +46,7 @@ public class SpecializationService {
     public Specialization getSpecializationByName(String name) {
         Specialization specialization = specializationRepository.findByName(name);
         if (specialization == null) {
-            throw new ResourceNotFoundException("Specialization not found with name: " + name);
+            throw new ResourceNotFoundException("Specialization", "name", name);
         }
         return specialization;
     }
@@ -55,7 +56,7 @@ public class SpecializationService {
      */
     public List<Specialization> getSpecializationsByRoomType(Long roomTypeId) {
         RoomType roomType = roomTypeRepository.findById(roomTypeId)
-            .orElseThrow(() -> new ResourceNotFoundException("Room type not found with id: " + roomTypeId));
+            .orElseThrow(() -> new ResourceNotFoundException("RoomType", roomTypeId));
         return specializationRepository.findByRoomType(roomType);
     }
     
@@ -64,11 +65,11 @@ public class SpecializationService {
      */
     public Specialization createSpecialization(Specialization specialization) {
         if (specializationRepository.existsByName(specialization.getName())) {
-            throw new IllegalArgumentException("Specialization with name '" + specialization.getName() + "' already exists");
+            throw new DuplicateResourceException("Specialization", "name", specialization.getName());
         }
         if (specialization.getRoomType() != null && specialization.getRoomType().getId() != null) {
             RoomType roomType = roomTypeRepository.findById(specialization.getRoomType().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Room type not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("RoomType", specialization.getRoomType().getId()));
             specialization.setRoomType(roomType);
         }
         return specializationRepository.save(specialization);

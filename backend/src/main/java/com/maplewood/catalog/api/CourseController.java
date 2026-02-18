@@ -1,7 +1,6 @@
 package com.maplewood.catalog.api;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +20,7 @@ import com.maplewood.catalog.service.CourseService;
 import com.maplewood.common.dto.CourseDTO;
 import com.maplewood.common.enums.CourseType;
 import com.maplewood.common.mapper.CourseMapper;
+import com.maplewood.common.util.DTOConverter;
 
 import jakarta.validation.Valid;
 
@@ -39,10 +39,7 @@ public class CourseController {
      */
     @GetMapping
     public ResponseEntity<List<CourseDTO>> getAllCourses() {
-        return ResponseEntity.ok(courseService.getAllCourses()
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getAllCourses(), CourseMapper::toDTO));
     }
     
     /**
@@ -50,7 +47,7 @@ public class CourseController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<CourseDTO> getCourseById(@PathVariable Long id) {
-        return ResponseEntity.ok(CourseMapper.toDTO(courseService.getCourseById(id)));
+        return ResponseEntity.ok(DTOConverter.convert(courseService.getCourseById(id), CourseMapper::toDTO));
     }
     
     /**
@@ -58,7 +55,7 @@ public class CourseController {
      */
     @GetMapping("/code/{code}")
     public ResponseEntity<CourseDTO> getCourseByCode(@PathVariable String code) {
-        return ResponseEntity.ok(CourseMapper.toDTO(courseService.getCourseByCode(code)));
+        return ResponseEntity.ok(DTOConverter.convert(courseService.getCourseByCode(code), CourseMapper::toDTO));
     }
     
     /**
@@ -66,10 +63,7 @@ public class CourseController {
      */
     @GetMapping("/type/{type}")
     public ResponseEntity<List<CourseDTO>> getCoursesByType(@PathVariable CourseType type) {
-        return ResponseEntity.ok(courseService.getCoursesByType(type)
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByType(type), CourseMapper::toDTO));
     }
     
     /**
@@ -78,10 +72,7 @@ public class CourseController {
      */
     @GetMapping("/semester/{semesterOrder}")
     public ResponseEntity<List<CourseDTO>> getCoursesBySemesterOrder(@PathVariable Integer semesterOrder) {
-        return ResponseEntity.ok(courseService.getCoursesBySemesterOrder(semesterOrder)
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesBySemesterOrder(semesterOrder), CourseMapper::toDTO));
     }
     
     /**
@@ -89,10 +80,7 @@ public class CourseController {
      */
     @GetMapping("/grade-level/{gradeLevel}")
     public ResponseEntity<List<CourseDTO>> getCoursesByGradeLevel(@PathVariable Integer gradeLevel) {
-        return ResponseEntity.ok(courseService.getCoursesByGradeLevel(gradeLevel)
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByGradeLevel(gradeLevel), CourseMapper::toDTO));
     }
     
     /**
@@ -100,10 +88,7 @@ public class CourseController {
      */
     @GetMapping("/with-prerequisites")
     public ResponseEntity<List<CourseDTO>> getCoursesWithPrerequisites() {
-        return ResponseEntity.ok(courseService.getCoursesWithPrerequisites()
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesWithPrerequisites(), CourseMapper::toDTO));
     }
     
     /**
@@ -111,10 +96,7 @@ public class CourseController {
      */
     @GetMapping("/{id}/prerequisite-chain")
     public ResponseEntity<List<CourseDTO>> getPrerequisiteChain(@PathVariable Long id) {
-        return ResponseEntity.ok(courseService.getPrerequisiteChain(id)
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getPrerequisiteChain(id), CourseMapper::toDTO));
     }
     
     /**
@@ -122,10 +104,7 @@ public class CourseController {
      */
     @GetMapping("/{id}/dependents")
     public ResponseEntity<List<CourseDTO>> getDependentCourses(@PathVariable Long id) {
-        return ResponseEntity.ok(courseService.getDependentCourses(id)
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getDependentCourses(id), CourseMapper::toDTO));
     }
     
     /**
@@ -138,37 +117,22 @@ public class CourseController {
             @RequestParam(required = false) Integer semesterOrder) {
         
         if (type != null && gradeLevel != null) {
-            return ResponseEntity.ok(courseService.getCoursesByTypeAndGradeLevel(type, gradeLevel)
-                .stream()
-                .map(CourseMapper::toDTO)
-                .collect(Collectors.toList()));
+            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByTypeAndGradeLevel(type, gradeLevel), CourseMapper::toDTO));
         }
         
         if (gradeLevel != null) {
-            return ResponseEntity.ok(courseService.getCoursesByGradeLevel(gradeLevel)
-                .stream()
-                .map(CourseMapper::toDTO)
-                .collect(Collectors.toList()));
+            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByGradeLevel(gradeLevel), CourseMapper::toDTO));
         }
         
         if (type != null) {
-            return ResponseEntity.ok(courseService.getCoursesByType(type)
-                .stream()
-                .map(CourseMapper::toDTO)
-                .collect(Collectors.toList()));
+            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByType(type), CourseMapper::toDTO));
         }
         
         if (semesterOrder != null) {
-            return ResponseEntity.ok(courseService.getCoursesBySemesterOrder(semesterOrder)
-                .stream()
-                .map(CourseMapper::toDTO)
-                .collect(Collectors.toList()));
+            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesBySemesterOrder(semesterOrder), CourseMapper::toDTO));
         }
         
-        return ResponseEntity.ok(courseService.getAllCourses()
-            .stream()
-            .map(CourseMapper::toDTO)
-            .collect(Collectors.toList()));
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getAllCourses(), CourseMapper::toDTO));
     }
     
     /**

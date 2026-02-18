@@ -22,6 +22,8 @@ import com.maplewood.common.mapper.RoomTypeMapper;
 import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.service.RoomTypeService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for RoomType endpoints
  * Provides CRUD operations for room types
@@ -65,7 +67,7 @@ public class RoomTypeController {
      * POST create new room type
      */
     @PostMapping
-    public ResponseEntity<RoomTypeDTO> createRoomType(@RequestBody RoomTypeDTO roomTypeDTO) {
+    public ResponseEntity<RoomTypeDTO> createRoomType(@Valid @RequestBody RoomTypeDTO roomTypeDTO) {
         RoomType entity = RoomTypeMapper.toEntity(roomTypeDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(RoomTypeMapper.toDTO(roomTypeService.createRoomType(entity)));
     }
@@ -74,7 +76,7 @@ public class RoomTypeController {
      * PUT update room type
      */
     @PutMapping("/{id}")
-    public ResponseEntity<RoomTypeDTO> updateRoomType(@PathVariable Long id, @RequestBody RoomTypeDTO roomTypeDTO) {
+    public ResponseEntity<RoomTypeDTO> updateRoomType(@PathVariable Long id, @Valid @RequestBody RoomTypeDTO roomTypeDTO) {
         RoomType entity = RoomTypeMapper.toEntity(roomTypeDTO);
         return ResponseEntity.ok(RoomTypeMapper.toDTO(roomTypeService.updateRoomType(id, entity)));
     }

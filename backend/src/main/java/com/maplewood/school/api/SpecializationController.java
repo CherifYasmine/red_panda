@@ -22,6 +22,8 @@ import com.maplewood.common.mapper.SpecializationMapper;
 import com.maplewood.school.entity.Specialization;
 import com.maplewood.school.service.SpecializationService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for Specialization endpoints
  * Provides CRUD operations for specializations (Math, Science, English, etc.)
@@ -76,7 +78,7 @@ public class SpecializationController {
      * POST create new specialization
      */
     @PostMapping
-    public ResponseEntity<SpecializationDTO> createSpecialization(@RequestBody SpecializationDTO specializationDTO) {
+    public ResponseEntity<SpecializationDTO> createSpecialization(@Valid @RequestBody SpecializationDTO specializationDTO) {
         Specialization entity = SpecializationMapper.toEntity(specializationDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(SpecializationMapper.toDTO(specializationService.createSpecialization(entity)));
     }
@@ -85,7 +87,7 @@ public class SpecializationController {
      * PUT update specialization
      */
     @PutMapping("/{id}")
-    public ResponseEntity<SpecializationDTO> updateSpecialization(@PathVariable Long id, @RequestBody SpecializationDTO specializationDTO) {
+    public ResponseEntity<SpecializationDTO> updateSpecialization(@PathVariable Long id, @Valid @RequestBody SpecializationDTO specializationDTO) {
         Specialization entity = SpecializationMapper.toEntity(specializationDTO);
         return ResponseEntity.ok(SpecializationMapper.toDTO(specializationService.updateSpecialization(id, entity)));
     }

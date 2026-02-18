@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.maplewood.common.exception.DuplicateResourceException;
 import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.repository.RoomTypeRepository;
@@ -31,7 +32,7 @@ public class RoomTypeService {
      */
     public RoomType getRoomTypeById(Long id) {
         return roomTypeRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Room type not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("RoomType", id));
     }
     
     /**
@@ -40,7 +41,7 @@ public class RoomTypeService {
     public RoomType getRoomTypeByName(String name) {
         RoomType roomType = roomTypeRepository.findByName(name);
         if (roomType == null) {
-            throw new ResourceNotFoundException("Room type not found with name: " + name);
+            throw new ResourceNotFoundException("RoomType", "name", name);
         }
         return roomType;
     }
@@ -50,7 +51,7 @@ public class RoomTypeService {
      */
     public RoomType createRoomType(RoomType roomType) {
         if (roomTypeRepository.existsByName(roomType.getName())) {
-            throw new IllegalArgumentException("Room type with name '" + roomType.getName() + "' already exists");
+            throw new DuplicateResourceException("RoomType", "name", roomType.getName());
         }
         return roomTypeRepository.save(roomType);
     }

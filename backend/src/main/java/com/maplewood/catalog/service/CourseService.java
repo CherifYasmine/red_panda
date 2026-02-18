@@ -34,7 +34,7 @@ public class CourseService {
      */
     public Course getCourseById(Long id) {
         return courseRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Course", id));
     }
     
     /**
@@ -42,7 +42,7 @@ public class CourseService {
      */
     public Course getCourseByCode(String code) {
         return courseRepository.findByCode(code)
-            .orElseThrow(() -> new ResourceNotFoundException("Course not found with code: " + code));
+            .orElseThrow(() -> new ResourceNotFoundException("Course", "code", code));
     }
     
     /**

@@ -36,7 +36,7 @@ public class TeacherService {
      */
     public Teacher getTeacherById(Long id) {
         return teacherRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Teacher not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Teacher", id));
     }
     
     /**
@@ -45,7 +45,7 @@ public class TeacherService {
     public Teacher getTeacherByEmail(String email) {
         Teacher teacher = teacherRepository.findByEmail(email);
         if (teacher == null) {
-            throw new ResourceNotFoundException("Teacher not found with email: " + email);
+            throw new ResourceNotFoundException("Teacher", "email", email);
         }
         return teacher;
     }

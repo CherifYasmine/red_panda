@@ -31,7 +31,7 @@ public class SemesterService {
      */
     public Semester getSemesterById(Long id) {
         return semesterRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Semester not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Semester", id));
     }
     
     /**
@@ -40,7 +40,7 @@ public class SemesterService {
     public Semester getSemesterByNameAndYear(SemesterName name, Integer year) {
         Optional<Semester> semester = semesterRepository.findByNameAndYear(name, year);
         if (!semester.isPresent()) {
-            throw new ResourceNotFoundException("Semester not found: " + name + " " + year);
+            throw new ResourceNotFoundException("Semester", "nameAndYear", name + " " + year);
         }
         return semester.get();
     }

@@ -64,6 +64,21 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Handle duplicate resource errors (409 Conflict)
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex, WebRequest request) {
+        ErrorResponse error = ErrorResponse.builder()
+            .status(HttpStatus.CONFLICT.value())
+            .error("Duplicate Resource")
+            .message(ex.getMessage())
+            .timestamp(java.time.LocalDateTime.now())
+            .path(request.getDescription(false).replace("uri=", ""))
+            .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    /**
      * Handle schedule conflict errors (409 Conflict)
      */
     @ExceptionHandler(ScheduleConflictException.class)

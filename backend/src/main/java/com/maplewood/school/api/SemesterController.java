@@ -23,6 +23,8 @@ import com.maplewood.common.mapper.SemesterMapper;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.service.SemesterService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for Semester endpoints
  * Provides CRUD operations for semesters and active semester management
@@ -88,7 +90,7 @@ public class SemesterController {
      * POST create new semester
      */
     @PostMapping
-    public ResponseEntity<SemesterDTO> createSemester(@RequestBody SemesterDTO semesterDTO) {
+    public ResponseEntity<SemesterDTO> createSemester(@Valid @RequestBody SemesterDTO semesterDTO) {
         Semester entity = SemesterMapper.toEntity(semesterDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(SemesterMapper.toDTO(semesterService.createSemester(entity)));
     }
@@ -97,7 +99,7 @@ public class SemesterController {
      * PUT update semester
      */
     @PutMapping("/{id}")
-    public ResponseEntity<SemesterDTO> updateSemester(@PathVariable Long id, @RequestBody SemesterDTO semesterDTO) {
+    public ResponseEntity<SemesterDTO> updateSemester(@PathVariable Long id, @Valid @RequestBody SemesterDTO semesterDTO) {
         Semester entity = SemesterMapper.toEntity(semesterDTO);
         return ResponseEntity.ok(SemesterMapper.toDTO(semesterService.updateSemester(id, entity)));
     }

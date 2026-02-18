@@ -36,7 +36,7 @@ public class ClassroomService {
      */
     public Classroom getClassroomById(Long id) {
         return classroomRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Classroom not found with id: " + id));
+            .orElseThrow(() -> new ResourceNotFoundException("Classroom", id));
     }
     
     /**
@@ -45,7 +45,7 @@ public class ClassroomService {
     public Classroom getClassroomByName(String name) {
         Classroom classroom = classroomRepository.findByName(name);
         if (classroom == null) {
-            throw new ResourceNotFoundException("Classroom not found with name: " + name);
+            throw new ResourceNotFoundException("Classroom", "name", name);
         }
         return classroom;
     }

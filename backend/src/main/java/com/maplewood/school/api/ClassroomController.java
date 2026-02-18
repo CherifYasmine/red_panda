@@ -22,6 +22,8 @@ import com.maplewood.common.mapper.ClassroomMapper;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.service.ClassroomService;
 
+import jakarta.validation.Valid;
+
 /**
  * REST controller for Classroom endpoints
  * Provides CRUD operations for classrooms
@@ -87,7 +89,7 @@ public class ClassroomController {
      * POST create new classroom
      */
     @PostMapping
-    public ResponseEntity<ClassroomDTO> createClassroom(@RequestBody ClassroomDTO classroomDTO) {
+    public ResponseEntity<ClassroomDTO> createClassroom(@Valid @RequestBody ClassroomDTO classroomDTO) {
         Classroom entity = ClassroomMapper.toEntity(classroomDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(ClassroomMapper.toDTO(classroomService.createClassroom(entity)));
     }
@@ -96,7 +98,7 @@ public class ClassroomController {
      * PUT update classroom
      */
     @PutMapping("/{id}")
-    public ResponseEntity<ClassroomDTO> updateClassroom(@PathVariable Long id, @RequestBody ClassroomDTO classroomDTO) {
+    public ResponseEntity<ClassroomDTO> updateClassroom(@PathVariable Long id, @Valid @RequestBody ClassroomDTO classroomDTO) {
         Classroom entity = ClassroomMapper.toEntity(classroomDTO);
         return ResponseEntity.ok(ClassroomMapper.toDTO(classroomService.updateClassroom(id, entity)));
     }
