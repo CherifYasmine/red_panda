@@ -1,19 +1,19 @@
-package com.maplewood.common.converter;
+package com.maplewood.common.converter.jpa;
 
-import com.maplewood.common.enums.StudentStatus;
+import com.maplewood.common.enums.SemesterName;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 /**
- * JPA Converter for StudentStatus enum
+ * JPA Converter for SemesterName enum
  * Handles mapping between Java enum constants (UPPERCASE) and database values (titlecase)
  */
 @Converter(autoApply = true)
-public class StudentStatusConverter implements AttributeConverter<StudentStatus, String> {
+public class SemesterNameConverter implements AttributeConverter<SemesterName, String> {
 
     @Override
-    public String convertToDatabaseColumn(StudentStatus attribute) {
+    public String convertToDatabaseColumn(SemesterName attribute) {
         if (attribute == null) {
             return null;
         }
@@ -21,10 +21,10 @@ public class StudentStatusConverter implements AttributeConverter<StudentStatus,
     }
 
     @Override
-    public StudentStatus convertToEntityAttribute(String dbData) {
+    public SemesterName convertToEntityAttribute(String dbData) {
         if (dbData == null) {
             return null;
         }
-        return StudentStatus.fromDbValue(dbData);
+        return SemesterName.fromDbValue(dbData);
     }
 }

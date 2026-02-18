@@ -1,6 +1,7 @@
 package com.maplewood.school.api;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maplewood.common.dto.ClassroomDTO;
+import com.maplewood.common.mapper.ClassroomMapper;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.service.ClassroomService;
 
@@ -35,56 +38,67 @@ public class ClassroomController {
      * GET all classrooms
      */
     @GetMapping
-    public ResponseEntity<List<Classroom>> getAllClassrooms() {
-        return ResponseEntity.ok(classroomService.getAllClassrooms());
+    public ResponseEntity<List<ClassroomDTO>> getAllClassrooms() {
+        return ResponseEntity.ok(classroomService.getAllClassrooms()
+            .stream()
+            .map(ClassroomMapper::toDTO)
+            .collect(Collectors.toList()));
     }
     
     /**
      * GET classroom by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Classroom> getClassroomById(@PathVariable Long id) {
-        return ResponseEntity.ok(classroomService.getClassroomById(id));
+    public ResponseEntity<ClassroomDTO> getClassroomById(@PathVariable Long id) {
+        return ResponseEntity.ok(ClassroomMapper.toDTO(classroomService.getClassroomById(id)));
     }
     
     /**
      * GET classroom by name
      */
     @GetMapping("/search/name")
-    public ResponseEntity<Classroom> getClassroomByName(@RequestParam String name) {
-        return ResponseEntity.ok(classroomService.getClassroomByName(name));
+    public ResponseEntity<ClassroomDTO> getClassroomByName(@RequestParam String name) {
+        return ResponseEntity.ok(ClassroomMapper.toDTO(classroomService.getClassroomByName(name)));
     }
     
     /**
      * GET classrooms by room type
      */
     @GetMapping("/room-type/{roomTypeId}")
-    public ResponseEntity<List<Classroom>> getClassroomsByRoomType(@PathVariable Long roomTypeId) {
-        return ResponseEntity.ok(classroomService.getClassroomsByRoomType(roomTypeId));
+    public ResponseEntity<List<ClassroomDTO>> getClassroomsByRoomType(@PathVariable Long roomTypeId) {
+        return ResponseEntity.ok(classroomService.getClassroomsByRoomType(roomTypeId)
+            .stream()
+            .map(ClassroomMapper::toDTO)
+            .collect(Collectors.toList()));
     }
     
     /**
      * GET classrooms by floor
      */
     @GetMapping("/floor/{floor}")
-    public ResponseEntity<List<Classroom>> getClassroomsByFloor(@PathVariable Integer floor) {
-        return ResponseEntity.ok(classroomService.getClassroomsByFloor(floor));
+    public ResponseEntity<List<ClassroomDTO>> getClassroomsByFloor(@PathVariable Integer floor) {
+        return ResponseEntity.ok(classroomService.getClassroomsByFloor(floor)
+            .stream()
+            .map(ClassroomMapper::toDTO)
+            .collect(Collectors.toList()));
     }
     
     /**
      * POST create new classroom
      */
     @PostMapping
-    public ResponseEntity<Classroom> createClassroom(@RequestBody Classroom classroom) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(classroomService.createClassroom(classroom));
+    public ResponseEntity<ClassroomDTO> createClassroom(@RequestBody ClassroomDTO classroomDTO) {
+        Classroom entity = ClassroomMapper.toEntity(classroomDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ClassroomMapper.toDTO(classroomService.createClassroom(entity)));
     }
     
     /**
      * PUT update classroom
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Classroom> updateClassroom(@PathVariable Long id, @RequestBody Classroom classroom) {
-        return ResponseEntity.ok(classroomService.updateClassroom(id, classroom));
+    public ResponseEntity<ClassroomDTO> updateClassroom(@PathVariable Long id, @RequestBody ClassroomDTO classroomDTO) {
+        Classroom entity = ClassroomMapper.toEntity(classroomDTO);
+        return ResponseEntity.ok(ClassroomMapper.toDTO(classroomService.updateClassroom(id, entity)));
     }
     
     /**

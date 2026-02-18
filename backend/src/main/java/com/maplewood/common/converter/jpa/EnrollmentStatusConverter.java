@@ -1,4 +1,4 @@
-package com.maplewood.common.converter;
+package com.maplewood.common.converter.jpa;
 
 import com.maplewood.common.enums.EnrollmentStatus;
 

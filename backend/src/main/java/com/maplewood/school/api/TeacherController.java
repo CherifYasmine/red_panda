@@ -1,6 +1,7 @@
 package com.maplewood.school.api;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maplewood.common.dto.TeacherDTO;
+import com.maplewood.common.mapper.TeacherMapper;
 import com.maplewood.school.entity.Teacher;
 import com.maplewood.school.service.TeacherService;
 
@@ -35,48 +38,56 @@ public class TeacherController {
      * GET all teachers
      */
     @GetMapping
-    public ResponseEntity<List<Teacher>> getAllTeachers() {
-        return ResponseEntity.ok(teacherService.getAllTeachers());
+    public ResponseEntity<List<TeacherDTO>> getAllTeachers() {
+        return ResponseEntity.ok(teacherService.getAllTeachers()
+            .stream()
+            .map(TeacherMapper::toDTO)
+            .collect(Collectors.toList()));
     }
     
     /**
      * GET teacher by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Teacher> getTeacherById(@PathVariable Long id) {
-        return ResponseEntity.ok(teacherService.getTeacherById(id));
+    public ResponseEntity<TeacherDTO> getTeacherById(@PathVariable Long id) {
+        return ResponseEntity.ok(TeacherMapper.toDTO(teacherService.getTeacherById(id)));
     }
     
     /**
      * GET teacher by email
      */
     @GetMapping("/search/email")
-    public ResponseEntity<Teacher> getTeacherByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(teacherService.getTeacherByEmail(email));
+    public ResponseEntity<TeacherDTO> getTeacherByEmail(@RequestParam String email) {
+        return ResponseEntity.ok(TeacherMapper.toDTO(teacherService.getTeacherByEmail(email)));
     }
     
     /**
      * GET teachers by specialization
      */
     @GetMapping("/specialization/{specializationId}")
-    public ResponseEntity<List<Teacher>> getTeachersBySpecialization(@PathVariable Long specializationId) {
-        return ResponseEntity.ok(teacherService.getTeachersBySpecialization(specializationId));
+    public ResponseEntity<List<TeacherDTO>> getTeachersBySpecialization(@PathVariable Long specializationId) {
+        return ResponseEntity.ok(teacherService.getTeachersBySpecialization(specializationId)
+            .stream()
+            .map(TeacherMapper::toDTO)
+            .collect(Collectors.toList()));
     }
     
     /**
      * POST create new teacher
      */
     @PostMapping
-    public ResponseEntity<Teacher> createTeacher(@RequestBody Teacher teacher) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(teacherService.createTeacher(teacher));
+    public ResponseEntity<TeacherDTO> createTeacher(@RequestBody TeacherDTO teacherDTO) {
+        Teacher entity = TeacherMapper.toEntity(teacherDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(TeacherMapper.toDTO(teacherService.createTeacher(entity)));
     }
     
     /**
      * PUT update teacher
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Teacher> updateTeacher(@PathVariable Long id, @RequestBody Teacher teacher) {
-        return ResponseEntity.ok(teacherService.updateTeacher(id, teacher));
+    public ResponseEntity<TeacherDTO> updateTeacher(@PathVariable Long id, @RequestBody TeacherDTO teacherDTO) {
+        Teacher entity = TeacherMapper.toEntity(teacherDTO);
+        return ResponseEntity.ok(TeacherMapper.toDTO(teacherService.updateTeacher(id, entity)));
     }
     
     /**
