@@ -1,10 +1,6 @@
 package com.maplewood.school.entity;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.CreationTimestamp;
 
 import com.maplewood.common.enums.SemesterName;
 
@@ -46,16 +42,15 @@ public class Semester {
     private Integer orderInYear;
     
     @Column(name = "start_date")
-    private LocalDate startDate;
+    private String startDate;
     
     @Column(name = "end_date")
-    private LocalDate endDate;
+    private String endDate;
     
     @ColumnDefault("false")
     @Column(name = "is_active")
     private Boolean isActive;
     
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private String createdAt;
 }
