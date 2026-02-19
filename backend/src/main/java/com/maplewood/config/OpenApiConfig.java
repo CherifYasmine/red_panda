@@ -17,8 +17,7 @@ public class OpenApiConfig {
                 .version("1.0.0")
                 .description("REST API for course scheduling, enrollment, and academic metrics")
                 .contact(new Contact()
-                    .name("Maplewood High School")
-                    .url("https://maplewood.edu"))
+                    .name("Maplewood High School"))
             );
     }
 }
