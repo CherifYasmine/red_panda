@@ -5,12 +5,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.enums.CourseHistoryStatus;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
 import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.repository.CourseSectionMeetingRepository;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentCourseHistoryRepository;
 
@@ -252,7 +252,7 @@ public class CurrentEnrollmentValidator {
         CourseSection newSection = enrollment.getCourseSection();
         
         // Get all meetings for the new section
-        List<com.maplewood.scheduling.entity.CourseSectionMeeting> newMeetings = 
+        List<com.maplewood.course.entity.CourseSectionMeeting> newMeetings = 
             meetingRepository.findBySection(newSection);
         
         if (newMeetings.isEmpty()) {
@@ -270,12 +270,12 @@ public class CurrentEnrollmentValidator {
         
         // Check each existing enrollment for conflicts
         for (CurrentEnrollment existing : currentEnrollments) {
-            List<com.maplewood.scheduling.entity.CourseSectionMeeting> existingMeetings = 
+            List<com.maplewood.course.entity.CourseSectionMeeting> existingMeetings = 
                 meetingRepository.findBySection(existing.getCourseSection());
             
             // Check for any overlaps
-            for (com.maplewood.scheduling.entity.CourseSectionMeeting newMeeting : newMeetings) {
-                for (com.maplewood.scheduling.entity.CourseSectionMeeting existingMeeting : existingMeetings) {
+            for (com.maplewood.course.entity.CourseSectionMeeting newMeeting : newMeetings) {
+                for (com.maplewood.course.entity.CourseSectionMeeting existingMeeting : existingMeetings) {
                     if (newMeeting.overlaps(existingMeeting)) {
                         throw new IllegalArgumentException(
                             "Schedule conflict: " + existing.getCourseSection().getCourse().getName() + 

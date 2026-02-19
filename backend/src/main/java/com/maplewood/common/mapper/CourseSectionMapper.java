@@ -3,7 +3,7 @@ package com.maplewood.common.mapper;
 import com.maplewood.common.dto.CourseSectionDTO;
 import com.maplewood.common.dto.CreateCourseSectionDTO;
 import com.maplewood.common.dto.UpdateCourseSectionDTO;
-import com.maplewood.scheduling.entity.CourseSection;
+import com.maplewood.course.entity.CourseSection;
 
 public class CourseSectionMapper {
     

@@ -1,4 +1,4 @@
-package com.maplewood.catalog.service;
+package com.maplewood.course.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.maplewood.catalog.entity.Course;
-import com.maplewood.catalog.repository.CourseRepository;
 import com.maplewood.common.enums.CourseType;
 import com.maplewood.common.exception.ResourceNotFoundException;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.repository.CourseRepository;
 import com.maplewood.school.entity.Specialization;
 
 /**

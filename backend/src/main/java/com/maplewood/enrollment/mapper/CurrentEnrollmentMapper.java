@@ -7,8 +7,8 @@ import com.maplewood.common.dto.StudentDTO;
 import com.maplewood.common.dto.UpdateEnrollmentDTO;
 import com.maplewood.common.enums.EnrollmentStatus;
 import com.maplewood.common.mapper.CourseSectionMapper;
+import com.maplewood.course.entity.CourseSection;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.scheduling.entity.CourseSection;
 import com.maplewood.student.entity.Student;
 
 /**

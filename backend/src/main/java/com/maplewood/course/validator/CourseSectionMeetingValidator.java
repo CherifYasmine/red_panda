@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.validator;
+package com.maplewood.course.validator;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.maplewood.common.enums.CourseType;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.entity.CourseSectionMeeting;
-import com.maplewood.scheduling.repository.CourseSectionMeetingRepository;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.entity.CourseSectionMeeting;
+import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.school.entity.Teacher;
 
 /**

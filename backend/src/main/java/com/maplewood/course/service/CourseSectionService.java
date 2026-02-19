@@ -1,17 +1,16 @@
-package com.maplewood.scheduling.service;
+package com.maplewood.course.service;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.maplewood.catalog.entity.Course;
-import com.maplewood.catalog.service.CourseService;
 import com.maplewood.common.dto.CreateCourseSectionDTO;
 import com.maplewood.common.dto.UpdateCourseSectionDTO;
 import com.maplewood.common.exception.ResourceNotFoundException;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.repository.CourseSectionRepository;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.repository.CourseSectionRepository;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;

@@ -1,8 +1,8 @@
 package com.maplewood.common.mapper;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.dto.CourseDTO;
 import com.maplewood.common.enums.CourseType;
+import com.maplewood.course.entity.Course;
 
 public class CourseMapper {
     

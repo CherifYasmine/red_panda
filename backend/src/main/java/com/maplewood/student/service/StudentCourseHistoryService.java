@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.enums.CourseHistoryStatus;
 import com.maplewood.common.exception.DuplicateResourceException;
 import com.maplewood.common.exception.ResourceNotFoundException;
+import com.maplewood.course.entity.Course;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.entity.StudentCourseHistory;

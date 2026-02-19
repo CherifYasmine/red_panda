@@ -1,4 +1,4 @@
-package com.maplewood.catalog.entity;
+package com.maplewood.course.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

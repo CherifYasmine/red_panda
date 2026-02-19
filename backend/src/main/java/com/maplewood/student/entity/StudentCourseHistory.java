@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.enums.CourseHistoryStatus;
+import com.maplewood.course.entity.Course;
 import com.maplewood.school.entity.Semester;
 
 import jakarta.persistence.Column;

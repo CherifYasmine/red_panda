@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.api;
+package com.maplewood.course.api;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -22,9 +22,9 @@ import com.maplewood.common.dto.CreateCourseSectionMeetingDTO;
 import com.maplewood.common.dto.UpdateCourseSectionMeetingDTO;
 import com.maplewood.common.mapper.CourseSectionMeetingMapper;
 import com.maplewood.common.util.DTOConverter;
-import com.maplewood.scheduling.entity.CourseSectionMeeting;
-import com.maplewood.scheduling.service.CourseSectionMeetingService;
-import com.maplewood.scheduling.service.CourseSectionService;
+import com.maplewood.course.entity.CourseSectionMeeting;
+import com.maplewood.course.service.CourseSectionMeetingService;
+import com.maplewood.course.service.CourseSectionService;
 
 import jakarta.validation.Valid;
 

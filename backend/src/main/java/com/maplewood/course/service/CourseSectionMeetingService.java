@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.service;
+package com.maplewood.course.service;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import com.maplewood.common.dto.CreateCourseSectionMeetingDTO;
 import com.maplewood.common.dto.UpdateCourseSectionMeetingDTO;
 import com.maplewood.common.exception.ResourceNotFoundException;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.entity.CourseSectionMeeting;
-import com.maplewood.scheduling.repository.CourseSectionMeetingRepository;
-import com.maplewood.scheduling.repository.CourseSectionRepository;
-import com.maplewood.scheduling.validator.CourseSectionMeetingValidator;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.entity.CourseSectionMeeting;
+import com.maplewood.course.repository.CourseSectionMeetingRepository;
+import com.maplewood.course.repository.CourseSectionRepository;
+import com.maplewood.course.validator.CourseSectionMeetingValidator;
 
 /**
  * Service for CourseSectionMeeting entity

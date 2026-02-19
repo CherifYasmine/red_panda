@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.api;
+package com.maplewood.course.api;
 
 import java.util.List;
 
@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maplewood.catalog.entity.Course;
-import com.maplewood.catalog.service.CourseService;
 import com.maplewood.common.dto.CourseSectionDTO;
 import com.maplewood.common.dto.CreateCourseSectionDTO;
 import com.maplewood.common.dto.UpdateCourseSectionDTO;
 import com.maplewood.common.mapper.CourseSectionMapper;
 import com.maplewood.common.util.DTOConverter;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.service.CourseSectionService;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.service.CourseSectionService;
+import com.maplewood.course.service.CourseService;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;

@@ -9,8 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.maplewood.common.enums.EnrollmentStatus;
+import com.maplewood.course.entity.CourseSection;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.scheduling.entity.CourseSection;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.student.entity.Student;
 

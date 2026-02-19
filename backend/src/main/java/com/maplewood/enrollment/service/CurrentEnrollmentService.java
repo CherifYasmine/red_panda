@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 import com.maplewood.common.dto.CreateEnrollmentDTO;
 import com.maplewood.common.dto.EnrollmentDTO;
 import com.maplewood.common.dto.UpdateEnrollmentDTO;
+import com.maplewood.course.entity.CourseSection;
+import com.maplewood.course.repository.CourseSectionRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
 import com.maplewood.enrollment.mapper.CurrentEnrollmentMapper;
 import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
 import com.maplewood.enrollment.validator.CurrentEnrollmentValidator;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.repository.CourseSectionRepository;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentRepository;
 

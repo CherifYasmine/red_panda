@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.repository;
+package com.maplewood.course.repository;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.maplewood.catalog.entity.Course;
-import com.maplewood.scheduling.entity.CourseSection;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.entity.CourseSection;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;

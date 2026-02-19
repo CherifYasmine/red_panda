@@ -7,7 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import com.maplewood.common.enums.EnrollmentStatus;
-import com.maplewood.scheduling.entity.CourseSection;
+import com.maplewood.course.entity.CourseSection;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.student.entity.Student;
 

@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.entity;
+package com.maplewood.course.entity;
 
 import java.time.LocalDateTime;
 
@@ -6,7 +6,6 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;

@@ -1,4 +1,4 @@
-package com.maplewood.catalog.repository;
+package com.maplewood.course.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.maplewood.catalog.entity.Course;
 import com.maplewood.common.enums.CourseType;
+import com.maplewood.course.entity.Course;
 import com.maplewood.school.entity.Specialization;
 
 /**

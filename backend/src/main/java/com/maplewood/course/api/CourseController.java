@@ -1,4 +1,4 @@
-package com.maplewood.catalog.api;
+package com.maplewood.course.api;
 
 import java.util.List;
 
@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.maplewood.catalog.entity.Course;
-import com.maplewood.catalog.service.CourseService;
 import com.maplewood.common.dto.CourseDTO;
 import com.maplewood.common.enums.CourseType;
 import com.maplewood.common.mapper.CourseMapper;
 import com.maplewood.common.util.DTOConverter;
+import com.maplewood.course.entity.Course;
+import com.maplewood.course.service.CourseService;
 
 import jakarta.validation.Valid;
 

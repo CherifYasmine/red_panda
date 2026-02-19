@@ -1,4 +1,4 @@
-package com.maplewood.scheduling.entity;
+package com.maplewood.course.entity;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
