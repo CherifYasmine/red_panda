@@ -77,7 +77,7 @@ public class CurrentEnrollmentValidator {
         if (courseCount > 0) {
             throw new IllegalArgumentException(
                 "Student is already enrolled in " + enrollment.getCourseSection().getCourse().getName() + 
-                " in this semester. Cannot take the same course twice per semester."
+                " (id: " + enrollment.getCourseSection().getCourse().getId() + ")" + " (CourseSection id: " + enrollment.getCourseSection().getId() + ") in this semester. Cannot take the same course twice per semester."
             );
         }
     }
