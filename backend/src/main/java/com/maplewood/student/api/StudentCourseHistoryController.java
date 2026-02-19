@@ -3,6 +3,8 @@ package com.maplewood.student.api;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,12 +58,15 @@ public class StudentCourseHistoryController {
     }
     
     /**
-     * Get all courses taken by a student
+     * Get all courses taken by a student with pagination
      */
     @GetMapping
-    public ResponseEntity<List<StudentCourseHistoryDTO>> getCourseHistoryByStudent(@PathVariable Long studentId) {
+    public ResponseEntity<Page<StudentCourseHistoryDTO>> getCourseHistoryByStudent(
+        @PathVariable Long studentId,
+        Pageable pageable
+    ) {
         Student student = studentService.getStudentById(studentId);
-        return ResponseEntity.ok(DTOConverter.convertList(courseHistoryService.getCourseHistoryByStudent(student), StudentCourseHistoryMapper::toDTO));
+        return ResponseEntity.ok(courseHistoryService.getCourseHistoryByStudent(student, pageable).map(StudentCourseHistoryMapper::toDTO));
     }
     
     /**

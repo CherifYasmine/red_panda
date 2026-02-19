@@ -2,8 +2,11 @@ package com.maplewood.course.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.maplewood.course.entity.Course;
@@ -70,4 +73,24 @@ public interface CourseSectionRepository extends JpaRepository<CourseSection, Lo
      */
     @Query("SELECT cs FROM CourseSection cs WHERE cs.enrollmentCount < cs.course.credits * 10")
     List<CourseSection> findAvailableSections();
+    
+    /**
+     * Search course sections with multiple filters
+     * Filters can be combined (specialization AND teacher AND semester, etc.)
+     */
+    @Query("SELECT cs FROM CourseSection cs " +
+           "WHERE " +
+           "(:specializationId IS NULL OR cs.course.specialization.id = :specializationId) " +
+           "AND (:teacherId IS NULL OR cs.teacher.id = :teacherId) " +
+           "AND (:semesterId IS NULL OR cs.semester.id = :semesterId) " +
+           "AND (:courseId IS NULL OR cs.course.id = :courseId) " +
+           "AND (:availableOnly = false OR cs.enrollmentCount < cs.capacity)")
+    Page<CourseSection> searchSections(
+        @Param("specializationId") Long specializationId,
+        @Param("teacherId") Long teacherId,
+        @Param("semesterId") Long semesterId,
+        @Param("courseId") Long courseId,
+        @Param("availableOnly") boolean availableOnly,
+        Pageable pageable
+    );
 }

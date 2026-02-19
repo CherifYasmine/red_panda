@@ -3,6 +3,8 @@ package com.maplewood.course.api;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,11 +37,11 @@ public class CourseController {
     private CourseService courseService;
     
     /**
-     * Get all courses
+     * Get all courses with pagination
      */
     @GetMapping
-    public ResponseEntity<List<CourseDTO>> getAllCourses() {
-        return ResponseEntity.ok(DTOConverter.convertList(courseService.getAllCourses(), CourseMapper::toDTO));
+    public ResponseEntity<Page<CourseDTO>> getAllCourses(Pageable pageable) {
+        return ResponseEntity.ok(courseService.getAllCourses(pageable).map(CourseMapper::toDTO));
     }
     
     /**

@@ -3,6 +3,8 @@ package com.maplewood.student.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.enums.StudentStatus;
@@ -20,6 +22,13 @@ public class StudentService {
     
     @Autowired
     private StudentRepository studentRepository;
+    
+    /**
+     * Get all students with pagination
+     */
+    public Page<Student> getAllStudents(Pageable pageable) {
+        return studentRepository.findAll(pageable);
+    }
     
     /**
      * Get all students

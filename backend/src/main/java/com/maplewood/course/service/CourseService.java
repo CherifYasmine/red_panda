@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.enums.CourseType;
@@ -21,6 +23,13 @@ public class CourseService {
     
     @Autowired
     private CourseRepository courseRepository;
+    
+    /**
+     * Get all courses with pagination
+     */
+    public Page<Course> getAllCourses(Pageable pageable) {
+        return courseRepository.findAll(pageable);
+    }
     
     /**
      * Get all courses

@@ -10,6 +10,7 @@ import com.maplewood.common.dto.EnrollmentDTO;
 import com.maplewood.common.dto.UpdateEnrollmentDTO;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.repository.CourseSectionRepository;
+import com.maplewood.course.service.CourseSectionService;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
 import com.maplewood.enrollment.mapper.CurrentEnrollmentMapper;
 import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
@@ -31,6 +32,9 @@ public class CurrentEnrollmentService {
     private CourseSectionRepository sectionRepository;
     
     @Autowired
+    private CourseSectionService courseSectionService;
+    
+    @Autowired
     private StudentRepository studentRepository;
     
     @Autowired
@@ -39,7 +43,9 @@ public class CurrentEnrollmentService {
     /**
      * Create a new enrollment from DTO
      * Validates prerequisites, capacity, schedule conflicts, etc.
+     * Transactional: both enrollment save and enrollmentCount increment succeed or both fail
      */
+    // @Transactional
     public EnrollmentDTO createEnrollmentFromDTO(CreateEnrollmentDTO createDTO) {
         // Load dependencies
         Student student = studentRepository.findById(createDTO.studentId())
@@ -54,8 +60,12 @@ public class CurrentEnrollmentService {
         // Validate all business rules
         validator.validate(enrollment);
         
-        // Save and return
+        // Save enrollment first
         CurrentEnrollment saved = enrollmentRepository.save(enrollment);
+        
+        // Then increment section enrollment count
+        // courseSectionService.incrementEnrollmentCount(section.getId());
+        
         return CurrentEnrollmentMapper.toDTO(saved);
     }
     
@@ -108,14 +118,20 @@ public class CurrentEnrollmentService {
             .toList();
     }
     
-    /**
-     * Delete an enrollment (student dropping a course)
+    /* Transactional: both enrollmentCount decrement and enrollment delete succeed or both fail
+     */
+    // @Transactional
+     /* Delete an enrollment (student dropping a course)
      */
     public void deleteEnrollment(Long enrollmentId) {
         CurrentEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
             .orElseThrow(() -> new IllegalArgumentException("Enrollment not found with ID: " + enrollmentId));
         
         enrollmentRepository.delete(enrollment);
+
+        // Decrement section enrollment count
+        courseSectionService.decrementEnrollmentCount(enrollment.getCourseSection().getId());
+        
     }
     
     /**

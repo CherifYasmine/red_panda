@@ -3,6 +3,8 @@ package com.maplewood.course.api;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.maplewood.common.dto.CourseSectionDTO;
@@ -58,11 +61,35 @@ public class CourseSectionController {
     private SemesterService semesterService;
     
     /**
-     * Get all course sections
+     * Get all course sections with pagination
      */
     @GetMapping
-    public ResponseEntity<List<CourseSectionDTO>> getAllSections() {
-        return ResponseEntity.ok(DTOConverter.convertList(courseSectionService.getAllSections(), CourseSectionMapper::toDTO));
+    public ResponseEntity<Page<CourseSectionDTO>> getAllCourseSections(Pageable pageable) {
+        return ResponseEntity.ok(courseSectionService.getAllCourseSections(pageable).map(CourseSectionMapper::toDTO));
+    }
+    
+    /**
+     * Search/filter course sections with multiple optional filters
+     * Query parameters:
+     * - specialization: specialization ID
+     * - teacher: teacher ID
+     * - semester: semester ID
+     * - course: course ID
+     * - available: true/false (only show available sections)
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<CourseSectionDTO>> searchCourseSections(
+        @RequestParam(required = false) Long specialization,
+        @RequestParam(required = false) Long teacher,
+        @RequestParam(required = false) Long semester,
+        @RequestParam(required = false) Long course,
+        @RequestParam(required = false) Boolean available,
+        Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+            courseSectionService.searchCourseSections(specialization, teacher, semester, course, available, pageable)
+                .map(CourseSectionMapper::toDTO)
+        );
     }
     
     /**

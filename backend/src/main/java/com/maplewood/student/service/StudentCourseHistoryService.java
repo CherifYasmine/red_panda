@@ -3,6 +3,8 @@ package com.maplewood.student.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.enums.CourseHistoryStatus;
@@ -38,7 +40,15 @@ public class StudentCourseHistoryService {
         return studentCourseHistoryRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("StudentCourseHistory", id));
     }
+     /**
+     * Get all students academic history with pagination
+     */
+    public Page<StudentCourseHistory> getCourseHistoryByStudent(Student student, Pageable pageable) {
+        return studentCourseHistoryRepository.findByStudent(student, pageable);
+    }
     
+    /**
+     * Get all courses taken by a student
     /**
      * Get all courses taken by a student
      */

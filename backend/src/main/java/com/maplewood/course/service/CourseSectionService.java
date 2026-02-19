@@ -3,6 +3,8 @@ package com.maplewood.course.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.dto.CreateCourseSectionDTO;
@@ -40,6 +42,35 @@ public class CourseSectionService {
     
     @Autowired
     private SemesterService semesterService;
+    
+    /**
+     * Get all course sections with pagination
+     */
+    public Page<CourseSection> getAllCourseSections(Pageable pageable) {
+        return courseSectionRepository.findAll(pageable);
+    }
+    
+    /**
+     * Search course sections with multiple optional filters
+     * Filters: specialization, teacher, semester, course, availability
+     */
+    public Page<CourseSection> searchCourseSections(
+        Long specializationId,
+        Long teacherId,
+        Long semesterId,
+        Long courseId,
+        Boolean availableOnly,
+        Pageable pageable
+    ) {
+        return courseSectionRepository.searchSections(
+            specializationId,
+            teacherId,
+            semesterId,
+            courseId,
+            availableOnly != null && availableOnly,
+            pageable
+        );
+    }
     
     /**
      * Get all course sections
