@@ -115,7 +115,9 @@ public class CourseSectionService {
     
     /**
      * Create new course section
-     * Validates that teacher's specialization matches course's specialization
+     * Validates that:
+     * 1. Teacher's specialization matches course's specialization
+     * 2. Classroom's room type matches course specialization's required room type
      */
     public CourseSection createCourseSectionFromDTO(CreateCourseSectionDTO createDTO) {
         CourseSection courseSection = new CourseSection();
@@ -126,7 +128,7 @@ public class CourseSectionService {
         Classroom classroom = classroomService.getClassroomById(createDTO.getClassroomId());
         Semester activeSemester = semesterService.getActiveSemester();  // Auto-load active semester
         
-        // VALIDATION: Check specialization match
+        // VALIDATION 1: Check specialization match
         if (course.getSpecialization() == null || teacher.getSpecialization() == null) {
             throw new IllegalArgumentException("Course and teacher must have specializations defined");
         }
@@ -136,6 +138,18 @@ public class CourseSectionService {
                 "Teacher " + teacher.getFirstName() + " " + teacher.getLastName() + 
                 " specializes in " + teacher.getSpecialization().getName() + 
                 " but this course is in " + course.getSpecialization().getName()
+            );
+        }
+        
+        // VALIDATION 2: Check classroom room type matches course specialization's required room type
+        if (course.getSpecialization().getRoomType() == null || classroom.getRoomType() == null) {
+            throw new IllegalArgumentException("Course specialization and classroom must have room types defined");
+        }
+        
+        if (!course.getSpecialization().getRoomType().getId().equals(classroom.getRoomType().getId())) {
+            throw new IllegalArgumentException(
+                "Classroom " + classroom.getName() + " has room type '" + classroom.getRoomType().getName() + 
+                "' but this course requires '" + course.getSpecialization().getRoomType().getName() + "' room type"
             );
         }
         
