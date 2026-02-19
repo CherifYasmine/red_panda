@@ -1,5 +1,7 @@
 package com.maplewood.common.exception;
 
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -7,6 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import com.maplewood.common.dto.ErrorResponse;
+
+import jakarta.validation.ConstraintViolationException;
 
 /**
  * Global exception handler for all REST API endpoints
@@ -92,6 +96,26 @@ public class GlobalExceptionHandler {
             .path(request.getDescription(false).replace("uri=", ""))
             .build();
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    /**
+     * Handle validation constraint violations (400 Bad Request)
+     * Handles @Max, @Min, @NotNull, @Pattern, etc. annotations
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex, WebRequest request) {
+        String violations = ex.getConstraintViolations().stream()
+            .map(cv -> cv.getPropertyPath() + ": " + cv.getMessage())
+            .collect(Collectors.joining(", "));
+        
+        ErrorResponse error = ErrorResponse.builder()
+            .status(HttpStatus.BAD_REQUEST.value())
+            .error("Validation Failed")
+            .message(violations)
+            .timestamp(java.time.LocalDateTime.now())
+            .path(request.getDescription(false).replace("uri=", ""))
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
     /**
