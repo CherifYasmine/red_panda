@@ -115,6 +115,7 @@ public class CourseSectionService {
     
     /**
      * Create new course section
+     * Validates that teacher's specialization matches course's specialization
      */
     public CourseSection createCourseSectionFromDTO(CreateCourseSectionDTO createDTO) {
         CourseSection courseSection = new CourseSection();
@@ -124,6 +125,19 @@ public class CourseSectionService {
         Teacher teacher = teacherService.getTeacherById(createDTO.getTeacherId());
         Classroom classroom = classroomService.getClassroomById(createDTO.getClassroomId());
         Semester activeSemester = semesterService.getActiveSemester();  // Auto-load active semester
+        
+        // VALIDATION: Check specialization match
+        if (course.getSpecialization() == null || teacher.getSpecialization() == null) {
+            throw new IllegalArgumentException("Course and teacher must have specializations defined");
+        }
+        
+        if (!course.getSpecialization().getId().equals(teacher.getSpecialization().getId())) {
+            throw new IllegalArgumentException(
+                "Teacher " + teacher.getFirstName() + " " + teacher.getLastName() + 
+                " specializes in " + teacher.getSpecialization().getName() + 
+                " but this course is in " + course.getSpecialization().getName()
+            );
+        }
         
         courseSection.setCourse(course);
         courseSection.setTeacher(teacher);

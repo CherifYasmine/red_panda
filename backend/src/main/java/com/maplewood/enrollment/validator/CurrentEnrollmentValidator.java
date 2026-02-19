@@ -20,11 +20,12 @@ import com.maplewood.student.repository.StudentCourseHistoryRepository;
  * 
  * Validations (in order):
  * 1. Duplicate Course - Student not already enrolled in this course (any section) this semester
- * 2. Grade Level - Student's grade level within course's min/max range
- * 3. Capacity Check - Section hasn't reached capacity
- * 4. Course Limit - Student not exceeding 5 courses per semester
- * 5. Prerequisites - Student has passed all required prerequisites
- * 6. Schedule Conflicts - No overlap between enrolled meetings
+ * 2. Already Completed - Student cannot retake a course they've already passed
+ * 3. Grade Level - Student's grade level within course's min/max range
+ * 4. Capacity Check - Section hasn't reached capacity
+ * 5. Course Limit - Student not exceeding 5 courses per semester
+ * 6. Prerequisites - Student has passed all required prerequisites
+ * 7. Schedule Conflicts - No overlap between enrolled meetings
  */
 @Component
 public class CurrentEnrollmentValidator {
@@ -43,6 +44,7 @@ public class CurrentEnrollmentValidator {
      */
     public void validate(CurrentEnrollment enrollment) {
         validateNoDuplicateCourse(enrollment);
+        validateNotAlreadyCompleted(enrollment);
         validateGradeLevel(enrollment);
         validateCapacity(enrollment);
         validateCourseLimit(enrollment);
@@ -83,7 +85,35 @@ public class CurrentEnrollmentValidator {
     }
     
     /**
-     * VALIDATION 2: Grade Level
+     * VALIDATION 2: Already Completed
+     * Ensures student cannot retake a course they've already passed in history
+     */
+    private void validateNotAlreadyCompleted(CurrentEnrollment enrollment) {
+        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
+            throw new IllegalArgumentException("Student and section must be provided");
+        }
+        
+        if (enrollment.getCourseSection().getCourse() == null) {
+            throw new IllegalArgumentException("Section must have course defined");
+        }
+        
+        // Check if student has already passed this course
+        boolean alreadyPassed = courseHistoryRepository.existsByStudentAndCourseAndStatus(
+            enrollment.getStudent(),
+            enrollment.getCourseSection().getCourse(),
+            CourseHistoryStatus.PASSED
+        );
+        
+        if (alreadyPassed) {
+            throw new IllegalArgumentException(
+                "Student has already completed " + enrollment.getCourseSection().getCourse().getName() + 
+                ". Cannot retake a course that has been passed."
+            );
+        }
+    }
+    
+    /**
+     * VALIDATION 3: Grade Level
      * Ensures student's grade level is within course's min/max range
      */
     private void validateGradeLevel(CurrentEnrollment enrollment) {
@@ -115,7 +145,7 @@ public class CurrentEnrollmentValidator {
     }
     
     /**
-     * VALIDATION 3: Capacity Check
+     * VALIDATION 4: Capacity Check
      * Ensures section hasn't reached maximum capacity
      */
     private void validateCapacity(CurrentEnrollment enrollment) {
@@ -139,7 +169,7 @@ public class CurrentEnrollmentValidator {
     }
     
     /**
-     * VALIDATION 4: Course Limit
+     * VALIDATION 5: Course Limit
      * Student cannot exceed 5 courses per semester
      */
     private void validateCourseLimit(CurrentEnrollment enrollment) {
@@ -164,7 +194,7 @@ public class CurrentEnrollmentValidator {
     }
     
     /**
-     * VALIDATION 5: Prerequisites
+     * VALIDATION 6: Prerequisites
      * Student must have passed all prerequisite courses
      */
     private void validatePrerequisites(CurrentEnrollment enrollment) {
@@ -191,13 +221,13 @@ public class CurrentEnrollmentValidator {
         
         if (!hasPrerequisite) {
             throw new IllegalArgumentException(
-                "Student has not completed prerequisite: " + course.getPrerequisite().getName()
+                "Student has not completed prerequisite: " + course.getPrerequisite().getName() + "(code: " + course.getPrerequisite().getCode() + ")"
             );
         }
     }
     
     /**
-     * VALIDATION 6: Schedule Conflicts
+     * VALIDATION 7: Schedule Conflicts
      * Student's new meeting times cannot overlap with already enrolled courses
      */
     private void validateScheduleConflicts(CurrentEnrollment enrollment) {
