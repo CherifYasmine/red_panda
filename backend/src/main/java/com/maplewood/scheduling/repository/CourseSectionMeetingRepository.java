@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 
 import com.maplewood.scheduling.entity.CourseSection;
 import com.maplewood.scheduling.entity.CourseSectionMeeting;
+import com.maplewood.school.entity.Classroom;
+import com.maplewood.school.entity.Teacher;
 
 /**
  * Repository for CourseSectionMeeting entity
@@ -60,4 +62,24 @@ public interface CourseSectionMeetingRepository extends JpaRepository<CourseSect
      * Count meetings for a section (should be 1-5 per section typically)
      */
     long countBySection(CourseSection section);
+    
+    /**
+     * Check if meeting exists for specific section/day/time (uniqueness check)
+     */
+    boolean existsBySection_IdAndDayOfWeekAndStartTime(Long sectionId, Integer dayOfWeek, LocalTime startTime);
+    
+    /**
+     * Find all meetings taught by a specific teacher (for schedule conflict detection)
+     */
+    List<CourseSectionMeeting> findBySection_Teacher(Teacher teacher);
+    
+    /**
+     * Find all meetings in a specific classroom (for schedule conflict detection)
+     */
+    List<CourseSectionMeeting> findBySection_Classroom(Classroom classroom);
+    
+    /**
+     * Find all meetings for a teacher on a specific day of week (for max daily hours validation)
+     */
+    List<CourseSectionMeeting> findBySection_TeacherAndDayOfWeek(Teacher teacher, Integer dayOfWeek);
 }
