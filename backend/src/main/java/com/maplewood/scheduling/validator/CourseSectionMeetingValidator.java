@@ -19,9 +19,10 @@ import com.maplewood.school.entity.Teacher;
  * Validations (in order):
  * 1. Uniqueness - No duplicate meetings for same section/day/time
  * 2. Time Window - Start < End
- * 3. Hours Validation - Total meeting hours <= course.hoursPerWeek
- * 4. Schedule Conflicts - No teacher or classroom conflicts
- * 5. Teacher Daily Hours - Teacher daily hours <= maxDailyHours
+ * 3. No Lunch Hour - Meetings cannot overlap with 12:00 PM - 1:00 PM
+ * 4. Hours Validation - Total meeting hours <= course.hoursPerWeek
+ * 5. Schedule Conflicts - No teacher or classroom conflicts
+ * 6. Teacher Daily Hours - Teacher daily hours <= maxDailyHours
  */
 @Component
 public class CourseSectionMeetingValidator {
@@ -35,6 +36,7 @@ public class CourseSectionMeetingValidator {
     public void validate(CourseSectionMeeting meeting) {
         validateUniqueness(meeting);
         validateTimeWindow(meeting);
+        validateNoLunchHour(meeting);
         validateHours(meeting);
         validateScheduleConflicts(meeting);
         validateTeacherDailyHours(meeting);
@@ -87,7 +89,26 @@ public class CourseSectionMeetingValidator {
     }
     
     /**
-     * VALIDATION 3: Hours Validation (CRITICAL)
+     * VALIDATION 3: No Lunch Hour Meetings
+     * - Classes cannot be scheduled during lunch hour (12:00 PM - 1:00 PM)
+     */
+    private void validateNoLunchHour(CourseSectionMeeting meeting) {
+        LocalTime lunchStart = LocalTime.of(12, 0);  // 12:00 PM
+        LocalTime lunchEnd = LocalTime.of(13, 0);    // 1:00 PM
+        
+        LocalTime meetingStart = meeting.getStartTime();
+        LocalTime meetingEnd = meeting.getEndTime();
+        
+        if (meetingStart.isBefore(lunchEnd) && meetingEnd.isAfter(lunchStart)) {
+            throw new IllegalArgumentException(
+                "Classes cannot be scheduled during lunch hour (12:00 PM - 1:00 PM). " +
+                "Meeting scheduled from " + meetingStart + " to " + meetingEnd
+            );
+        }
+    }
+    
+    /**
+     * VALIDATION 4: Hours Validation (CRITICAL)
      * Total hours of all meetings in this section <= course.hoursPerWeek
      */
     private void validateHours(CourseSectionMeeting meeting) {
@@ -137,7 +158,7 @@ public class CourseSectionMeetingValidator {
     }
     
     /**
-     * VALIDATION 4: Schedule Conflicts
+     * VALIDATION 5: Schedule Conflicts
      * - Teacher cannot teach 2 sections at same time
      * - Classroom cannot have 2 sections at same time
      */
@@ -191,7 +212,7 @@ public class CourseSectionMeetingValidator {
     }
     
     /**
-     * VALIDATION 5: Teacher Max Daily Hours
+     * VALIDATION 6: Teacher Max Daily Hours
      * Teacher cannot exceed maxDailyHours on any single day
      */
     private void validateTeacherDailyHours(CourseSectionMeeting meeting) {

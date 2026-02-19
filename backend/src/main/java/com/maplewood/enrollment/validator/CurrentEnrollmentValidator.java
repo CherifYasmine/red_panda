@@ -196,6 +196,7 @@ public class CurrentEnrollmentValidator {
     /**
      * VALIDATION 6: Prerequisites
      * Student must have passed all prerequisite courses
+     * Prerequisite must be from same or earlier semester (semester_order logic)
      */
     private void validatePrerequisites(CurrentEnrollment enrollment) {
         if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
@@ -223,6 +224,18 @@ public class CurrentEnrollmentValidator {
             throw new IllegalArgumentException(
                 "Student has not completed prerequisite: " + course.getPrerequisite().getName() + "(code: " + course.getPrerequisite().getCode() + ")"
             );
+        }
+        
+        // BONUS: Validate semester ordering
+        // Prerequisite course's semester_order should be <= current course's semester_order
+        // This prevents illogical scheduling like Fall course requiring Spring prerequisite
+        if (course.getSemesterOrder() != null && course.getPrerequisite().getSemesterOrder() != null) {
+            if (course.getPrerequisite().getSemesterOrder() > course.getSemesterOrder()) {
+                throw new IllegalArgumentException(
+                    "Prerequisite " + course.getPrerequisite().getName() + " is scheduled for later semester. " +
+                    "Prerequisites must be from same or earlier semester."
+                );
+            }
         }
     }
     
