@@ -19,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -50,6 +51,7 @@ public class CourseSection {
     @JoinColumn(name = "semester_id", nullable = false)
     private Semester semester;
     
+    @Max(10)
     @Column(nullable = false)
     private Integer capacity;
     

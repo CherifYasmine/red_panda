@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.maplewood.common.enums.CourseType;
 import com.maplewood.scheduling.entity.CourseSection;
 import com.maplewood.scheduling.entity.CourseSectionMeeting;
 import com.maplewood.scheduling.repository.CourseSectionMeetingRepository;
@@ -20,9 +21,10 @@ import com.maplewood.school.entity.Teacher;
  * 1. Uniqueness - No duplicate meetings for same section/day/time
  * 2. Time Window - Start < End
  * 3. No Lunch Hour - Meetings cannot overlap with 12:00 PM - 1:00 PM
- * 4. Hours Validation - Total meeting hours <= course.hoursPerWeek
- * 5. Schedule Conflicts - No teacher or classroom conflicts
- * 6. Teacher Daily Hours - Teacher daily hours <= maxDailyHours
+ * 4. Course Hours Type - Core courses 4-6 hours/week, Elective 2-4 hours/week
+ * 5. Hours Validation - Total meeting hours matches course.hoursPerWeek
+ * 6. Schedule Conflicts - No teacher or classroom conflicts
+ * 7. Teacher Daily Hours - Teacher daily hours <= maxDailyHours
  */
 @Component
 public class CourseSectionMeetingValidator {
@@ -37,6 +39,7 @@ public class CourseSectionMeetingValidator {
         validateUniqueness(meeting);
         validateTimeWindow(meeting);
         validateNoLunchHour(meeting);
+        validateCourseHoursType(meeting);
         validateHours(meeting);
         validateScheduleConflicts(meeting);
         validateTeacherDailyHours(meeting);
@@ -108,7 +111,41 @@ public class CourseSectionMeetingValidator {
     }
     
     /**
-     * VALIDATION 4: Hours Validation (CRITICAL)
+     * VALIDATION 4: Course Hours Type Validation
+     * - Core courses must be 4-6 hours per week
+     * - Elective courses must be 2-4 hours per week
+     */
+    private void validateCourseHoursType(CourseSectionMeeting meeting) {
+        if (meeting.getSection() == null || meeting.getSection().getCourse() == null) {
+            throw new IllegalArgumentException("Section and course must be provided");
+        }
+        
+        Integer hoursPerWeek = meeting.getSection().getCourse().getHoursPerWeek();
+        CourseType courseType = meeting.getSection().getCourse().getCourseType();
+        
+        if (hoursPerWeek == null || courseType == null) {
+            return;  // Skip validation if not defined
+        }
+        
+        if (CourseType.CORE.equals(courseType)) {
+            if (hoursPerWeek < 4 || hoursPerWeek > 6) {
+                throw new IllegalArgumentException(
+                    "Core courses must be 4-6 hours per week. " +
+                    "Course is defined as " + hoursPerWeek + " hours/week"
+                );
+            }
+        } else if (CourseType.ELECTIVE.equals(courseType)) {
+            if (hoursPerWeek < 2 || hoursPerWeek > 4) {
+                throw new IllegalArgumentException(
+                    "Elective courses must be 2-4 hours per week. " +
+                    "Course is defined as " + hoursPerWeek + " hours/week"
+                );
+            }
+        }
+    }
+    
+    /**
+     * VALIDATION 5: Hours Validation (CRITICAL)
      * Total hours of all meetings in this section <= course.hoursPerWeek
      */
     private void validateHours(CourseSectionMeeting meeting) {
