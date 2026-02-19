@@ -23,6 +23,23 @@ import com.maplewood.student.entity.Student;
 public interface CurrentEnrollmentRepository extends JpaRepository<CurrentEnrollment, Long> {
     
     /**
+     * Find all enrollments for a student
+     */
+    List<CurrentEnrollment> findByStudent(Student student);
+    
+    /**
+     * Check if student is already enrolled in a section (by IDs)
+     */
+    @Query("SELECT CASE WHEN COUNT(ce) > 0 THEN true ELSE false END FROM CurrentEnrollment ce WHERE ce.student.id = :studentId AND ce.courseSection.id = :sectionId")
+    boolean existsByStudent_IdAndCourseSection_Id(@Param("studentId") Long studentId, @Param("sectionId") Long sectionId);
+    
+    /**
+     * Count courses for a student in a specific semester (by ID)
+     */
+    @Query("SELECT COUNT(ce) FROM CurrentEnrollment ce WHERE ce.student.id = :studentId AND ce.courseSection.semester.id = :semesterId")
+    long countByStudent_IdAndCourseSection_Semester_Id(@Param("studentId") Long studentId, @Param("semesterId") Long semesterId);
+    
+    /**
      * Find all enrollments for a student in a specific semester
      */
     List<CurrentEnrollment> findByStudentAndSemester(Student student, Semester semester);
@@ -73,6 +90,12 @@ public interface CurrentEnrollmentRepository extends JpaRepository<CurrentEnroll
      * Find all enrollments for a specific course section
      */
     List<CurrentEnrollment> findByCourseSection(CourseSection courseSection);
+    
+    /**
+     * Count enrollments for a student in a specific course in a semester (prevents duplicate course enrollment)
+     */
+    @Query("SELECT COUNT(ce) FROM CurrentEnrollment ce WHERE ce.student.id = :studentId AND ce.courseSection.course.id = :courseId AND ce.courseSection.semester.id = :semesterId")
+    long countByStudent_IdAndCourse_IdAndSemester_Id(@Param("studentId") Long studentId, @Param("courseId") Long courseId, @Param("semesterId") Long semesterId);
     
     /**
      * Check if a student has any active enrollments in a semester

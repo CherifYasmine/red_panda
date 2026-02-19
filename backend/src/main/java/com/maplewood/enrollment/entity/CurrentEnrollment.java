@@ -49,6 +49,9 @@ public class CurrentEnrollment {
     @JoinColumn(name = "semester_id", nullable = false)
     private Semester semester;
     
+    @Column(length = 2)
+    private String grade;  // Final grade (A, B, C, D, F) - null until course ends
+    
     @ColumnDefault("'enrolled'")
     @Column(nullable = false, length = 20)
     @NotNull(message = "Status cannot be null")
