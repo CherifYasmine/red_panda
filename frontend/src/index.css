@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Base Styles */
+:root {
+  --primary: #2563eb;
+  --secondary: #059669;
+  --danger: #991b1b;
+  --warning: #92400e;
+  --success: #065f46;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Loading Animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}
