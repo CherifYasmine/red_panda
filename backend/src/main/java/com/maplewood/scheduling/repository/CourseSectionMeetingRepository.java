@@ -82,4 +82,10 @@ public interface CourseSectionMeetingRepository extends JpaRepository<CourseSect
      * Find all meetings for a teacher on a specific day of week (for max daily hours validation)
      */
     List<CourseSectionMeeting> findBySection_TeacherAndDayOfWeek(Teacher teacher, Integer dayOfWeek);
+    
+    /**
+     * Find meetings for a specific section at a specific day/time (for uniqueness check)
+     * Used to exclude current meeting during updates
+     */
+    List<CourseSectionMeeting> findBySection_IdAndDayOfWeekAndStartTime(Long sectionId, Integer dayOfWeek, LocalTime startTime);
 }

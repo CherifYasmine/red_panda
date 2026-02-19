@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.maplewood.catalog.entity.Course;
 import com.maplewood.catalog.service.CourseService;
+import com.maplewood.common.dto.CreateCourseSectionDTO;
+import com.maplewood.common.dto.UpdateCourseSectionDTO;
 import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.scheduling.entity.CourseSection;
 import com.maplewood.scheduling.repository.CourseSectionRepository;
@@ -113,22 +115,21 @@ public class CourseSectionService {
     
     /**
      * Create new course section
-     * Loads all related entities from service using IDs
      */
-    public CourseSection createCourseSectionFromDTO(Long courseId, Long teacherId, Long classroomId, Long semesterId, Integer capacity) {
+    public CourseSection createCourseSectionFromDTO(CreateCourseSectionDTO createDTO) {
         CourseSection courseSection = new CourseSection();
         
         // Load and set all entities
-        Course course = courseService.getCourseById(courseId);
-        Teacher teacher = teacherService.getTeacherById(teacherId);
-        Classroom classroom = classroomService.getClassroomById(classroomId);
-        Semester semester = semesterService.getSemesterById(semesterId);
+        Course course = courseService.getCourseById(createDTO.getCourseId());
+        Teacher teacher = teacherService.getTeacherById(createDTO.getTeacherId());
+        Classroom classroom = classroomService.getClassroomById(createDTO.getClassroomId());
+        Semester activeSemester = semesterService.getActiveSemester();  // Auto-load active semester
         
         courseSection.setCourse(course);
         courseSection.setTeacher(teacher);
         courseSection.setClassroom(classroom);
-        courseSection.setSemester(semester);
-        courseSection.setCapacity(capacity);
+        courseSection.setSemester(activeSemester);
+        courseSection.setCapacity(createDTO.getCapacity());
         courseSection.setEnrollmentCount(0);
         
         return courseSectionRepository.save(courseSection);
@@ -136,21 +137,20 @@ public class CourseSectionService {
     
     /**
      * Update course section
-     * Only updates provided fields, loads related entities if IDs provided
      */
-    public CourseSection updateCourseSectionFromDTO(Long id, Long teacherId, Long classroomId, Integer capacity) {
+    public CourseSection updateCourseSectionFromDTO(Long id, UpdateCourseSectionDTO updateDTO) {
         CourseSection existing = getCourseSectionById(id);
         
-        if (teacherId != null) {
-            Teacher teacher = teacherService.getTeacherById(teacherId);
+        if (updateDTO.getTeacherId() != null) {
+            Teacher teacher = teacherService.getTeacherById(updateDTO.getTeacherId());
             existing.setTeacher(teacher);
         }
-        if (classroomId != null) {
-            Classroom classroom = classroomService.getClassroomById(classroomId);
+        if (updateDTO.getClassroomId() != null) {
+            Classroom classroom = classroomService.getClassroomById(updateDTO.getClassroomId());
             existing.setClassroom(classroom);
         }
-        if (capacity != null) {
-            existing.setCapacity(capacity);
+        if (updateDTO.getCapacity() != null) {
+            existing.setCapacity(updateDTO.getCapacity());
         }
         
         return courseSectionRepository.save(existing);

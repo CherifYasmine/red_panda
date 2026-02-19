@@ -152,13 +152,7 @@ public class CourseSectionController {
      */
     @PostMapping
     public ResponseEntity<CourseSectionDTO> createCourseSection(@Valid @RequestBody CreateCourseSectionDTO createDTO) {
-        CourseSection created = courseSectionService.createCourseSectionFromDTO(
-            createDTO.getCourseId(),
-            createDTO.getTeacherId(),
-            createDTO.getClassroomId(),
-            createDTO.getSemesterId(),
-            createDTO.getCapacity()
-        );
+        CourseSection created = courseSectionService.createCourseSectionFromDTO(createDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(CourseSectionMapper.toDTO(created));
     }
     
@@ -167,12 +161,7 @@ public class CourseSectionController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<CourseSectionDTO> updateCourseSection(@PathVariable Long id, @Valid @RequestBody UpdateCourseSectionDTO updateDTO) {
-        CourseSection updated = courseSectionService.updateCourseSectionFromDTO(
-            id,
-            updateDTO.getTeacherId(),
-            updateDTO.getClassroomId(),
-            updateDTO.getCapacity()
-        );
+        CourseSection updated = courseSectionService.updateCourseSectionFromDTO(id, updateDTO);
         return ResponseEntity.ok(CourseSectionMapper.toDTO(updated));
     }
     

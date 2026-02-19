@@ -11,14 +11,13 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO for GET responses (Read-only)
- * Contains full nested objects and metadata
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CourseSectionMeetingDTO {
     private Long id;
-    private CourseSectionDTO section;  // Full nested object for response
+    private CourseSectionDTO section;
     private DayOfWeek dayOfWeek;
     private LocalTime startTime;
     private LocalTime endTime;

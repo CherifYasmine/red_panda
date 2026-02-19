@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO for POST requests (Create)
- * Only contains necessary fields for creation, no ID or timestamps
  */
 @Data
 @NoArgsConstructor
@@ -16,16 +15,13 @@ import lombok.NoArgsConstructor;
 public class CreateCourseSectionDTO {
     
     @NotNull(message = "Course ID cannot be null")
-    private Long courseId;  // Just the ID
+    private Long courseId;
     
     @NotNull(message = "Teacher ID cannot be null")
-    private Long teacherId;  // Just the ID
+    private Long teacherId;
     
     @NotNull(message = "Classroom ID cannot be null")
-    private Long classroomId;  // Just the ID
-    
-    @NotNull(message = "Semester ID cannot be null")
-    private Long semesterId;  // Just the ID
+    private Long classroomId;
     
     @NotNull(message = "Capacity cannot be null")
     @Min(value = 1, message = "Capacity must be at least 1")

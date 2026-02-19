@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO for PUT requests (Update)
- * Only contains fields that can be updated, no ID or timestamps
  */
 @Data
 @NoArgsConstructor

@@ -43,21 +43,30 @@ public class CourseSectionMeetingValidator {
     /**
      * VALIDATION 1: Uniqueness Check
      * Ensures same meeting time doesn't already exist for this section
+     * On update, excludes the current meeting from the check
      */
     private void validateUniqueness(CourseSectionMeeting meeting) {
         if (meeting.getSection() == null || meeting.getSection().getId() == null) {
             throw new IllegalArgumentException("Section must be provided");
         }
         
-        boolean exists = repository.existsBySection_IdAndDayOfWeekAndStartTime(
+        // Get all existing meetings with same day and start time
+        List<CourseSectionMeeting> conflictingMeetings = repository.findBySection_IdAndDayOfWeekAndStartTime(
             meeting.getSection().getId(),
             meeting.getDayOfWeek(),
             meeting.getStartTime()
         );
         
-        if (exists) {
+        // For updates, exclude the current meeting being updated
+        if (meeting.getId() != null) {
+            conflictingMeetings = conflictingMeetings.stream()
+                .filter(m -> !m.getId().equals(meeting.getId()))
+                .toList();
+        }
+        
+        if (!conflictingMeetings.isEmpty()) {
             throw new IllegalArgumentException(
-                "Meeting already exists for this section on day " + meeting.getDayOfWeek() + 
+                "Meeting already exists for this section on " + meeting.getDayOfWeekEnum() + 
                 " at " + meeting.getStartTime()
             );
         }
@@ -99,6 +108,14 @@ public class CourseSectionMeetingValidator {
         // Get all existing meetings for this section
         List<CourseSectionMeeting> existingMeetings = repository.findBySection(section);
         
+        // For updates, exclude the current meeting being updated from the total
+        // (so we don't double-count it)
+        if (meeting.getId() != null) {
+            existingMeetings = existingMeetings.stream()
+                .filter(m -> !m.getId().equals(meeting.getId()))
+                .toList();
+        }
+        
         // Calculate total minutes from existing meetings
         long totalMinutes = existingMeetings.stream()
             .mapToLong(m -> Duration.between(m.getStartTime(), m.getEndTime()).toMinutes())
@@ -133,6 +150,12 @@ public class CourseSectionMeetingValidator {
         Teacher teacher = meeting.getSection().getTeacher();
         if (teacher != null) {
             List<CourseSectionMeeting> teacherMeetings = repository.findBySection_Teacher(teacher);
+            // Exclude current meeting if updating
+            if (meeting.getId() != null) {
+                teacherMeetings = teacherMeetings.stream()
+                    .filter(m -> !m.getId().equals(meeting.getId()))
+                    .toList();
+            }
             boolean hasConflict = teacherMeetings.stream()
                 .anyMatch(m -> m.overlaps(meeting));
             
@@ -149,6 +172,12 @@ public class CourseSectionMeetingValidator {
             List<CourseSectionMeeting> classroomMeetings = repository.findBySection_Classroom(
                 meeting.getSection().getClassroom()
             );
+            // Exclude current meeting if updating
+            if (meeting.getId() != null) {
+                classroomMeetings = classroomMeetings.stream()
+                    .filter(m -> !m.getId().equals(meeting.getId()))
+                    .toList();
+            }
             boolean hasConflict = classroomMeetings.stream()
                 .anyMatch(m -> m.overlaps(meeting));
             
@@ -178,6 +207,12 @@ public class CourseSectionMeetingValidator {
             teacher,
             meeting.getDayOfWeek()
         );
+        // Exclude current meeting if updating
+        if (meeting.getId() != null) {
+            dailyMeetings = dailyMeetings.stream()
+                .filter(m -> !m.getId().equals(meeting.getId()))
+                .toList();
+        }
         
         // Calculate total minutes from existing meetings on this day
         long totalMinutesOnDay = dailyMeetings.stream()
@@ -193,7 +228,7 @@ public class CourseSectionMeetingValidator {
         if (totalHoursOnDay > maxDaily) {
             throw new IllegalArgumentException(
                 "Teacher would exceed maximum daily hours (" + totalHoursOnDay + 
-                " > " + maxDaily + ") on day " + meeting.getDayOfWeek()
+                " > " + maxDaily + ") on " + meeting.getDayOfWeekEnum()
             );
         }
     }

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO for GET responses (Read-only)
- * Contains full nested objects and metadata
  */
 @Data
 @NoArgsConstructor
