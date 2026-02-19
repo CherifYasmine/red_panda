@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.maplewood.common.dto.AcademicMetricsDTO;
 import com.maplewood.common.dto.StudentDTO;
 import com.maplewood.common.enums.StudentStatus;
 import com.maplewood.common.mapper.StudentMapper;
-import com.maplewood.common.util.DTOConverter;
 import com.maplewood.student.entity.Student;
+import com.maplewood.student.service.AcademicMetricsService;
 import com.maplewood.student.service.StudentService;
 
 import jakarta.validation.Valid;
@@ -37,12 +38,34 @@ public class StudentController {
     @Autowired
     private StudentService studentService;
     
+    @Autowired
+    private AcademicMetricsService academicMetricsService;
+    
+    /**
+     * Enrich StudentDTO with academic metrics
+     */
+    private StudentDTO enrichWithMetrics(Student entity) {
+        StudentDTO dto = StudentMapper.toDTO(entity);
+        AcademicMetricsService.AcademicMetrics metrics = academicMetricsService.getMetrics(entity);
+        dto.setAcademicMetrics(new AcademicMetricsDTO(
+            metrics.getGpa(), 
+            metrics.getCreditsEarned(),
+            metrics.getRemainingCreditsToGraduate(),
+            metrics.isGraduated()
+        ));
+        return dto;
+    }
+    
     /**
      * Get all students
      */
     @GetMapping
     public ResponseEntity<List<StudentDTO>> getAllStudents() {
-        return ResponseEntity.ok(DTOConverter.convertList(studentService.getAllStudents(), StudentMapper::toDTO));
+        return ResponseEntity.ok(
+            studentService.getAllStudents().stream()
+                .map(this::enrichWithMetrics)
+                .toList()
+        );
     }
     
     /**
@@ -50,7 +73,8 @@ public class StudentController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<StudentDTO> getStudentById(@PathVariable Long id) {
-        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentById(id), StudentMapper::toDTO));
+        Student student = studentService.getStudentById(id);
+        return ResponseEntity.ok(enrichWithMetrics(student));
     }
     
     /**
@@ -58,7 +82,8 @@ public class StudentController {
      */
     @GetMapping("/search/email")
     public ResponseEntity<StudentDTO> getStudentByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentByEmail(email), StudentMapper::toDTO));
+        Student student = studentService.getStudentByEmail(email);
+        return ResponseEntity.ok(enrichWithMetrics(student));
     }
     
     /**
@@ -69,7 +94,8 @@ public class StudentController {
         @RequestParam String firstName,
         @RequestParam String lastName
     ) {
-        return ResponseEntity.ok(DTOConverter.convert(studentService.getStudentByName(firstName, lastName), StudentMapper::toDTO));
+        Student student = studentService.getStudentByName(firstName, lastName);
+        return ResponseEntity.ok(enrichWithMetrics(student));
     }
     
     /**
@@ -77,7 +103,11 @@ public class StudentController {
      */
     @GetMapping("/search/first-name")
     public ResponseEntity<List<StudentDTO>> getStudentsByFirstName(@RequestParam String firstName) {
-        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByFirstName(firstName), StudentMapper::toDTO));
+        return ResponseEntity.ok(
+            studentService.getStudentsByFirstName(firstName).stream()
+                .map(this::enrichWithMetrics)
+                .toList()
+        );
     }
     
     /**
@@ -85,7 +115,11 @@ public class StudentController {
      */
     @GetMapping("/grade-level/{gradeLevel}")
     public ResponseEntity<List<StudentDTO>> getStudentsByGradeLevel(@PathVariable Integer gradeLevel) {
-        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByGradeLevel(gradeLevel), StudentMapper::toDTO));
+        return ResponseEntity.ok(
+            studentService.getStudentsByGradeLevel(gradeLevel).stream()
+                .map(this::enrichWithMetrics)
+                .toList()
+        );
     }
     
     /**
@@ -93,7 +127,11 @@ public class StudentController {
      */
     @GetMapping("/status/{status}")
     public ResponseEntity<List<StudentDTO>> getStudentsByStatus(@PathVariable StudentStatus status) {
-        return ResponseEntity.ok(DTOConverter.convertList(studentService.getStudentsByStatus(status), StudentMapper::toDTO));
+        return ResponseEntity.ok(
+            studentService.getStudentsByStatus(status).stream()
+                .map(this::enrichWithMetrics)
+                .toList()
+        );
     }
     
     /**
@@ -102,7 +140,8 @@ public class StudentController {
     @PostMapping
     public ResponseEntity<StudentDTO> createStudent(@Valid @RequestBody StudentDTO studentDTO) {
         Student entity = StudentMapper.toEntity(studentDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(StudentMapper.toDTO(studentService.createStudent(entity)));
+        Student created = studentService.createStudent(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(enrichWithMetrics(created));
     }
     
     /**
@@ -111,7 +150,8 @@ public class StudentController {
     @PutMapping("/{id}")
     public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @Valid @RequestBody StudentDTO studentDTO) {
         Student entity = StudentMapper.toEntity(studentDTO);
-        return ResponseEntity.ok(StudentMapper.toDTO(studentService.updateStudent(id, entity)));
+        Student updated = studentService.updateStudent(id, entity);
+        return ResponseEntity.ok(enrichWithMetrics(updated));
     }
     
     /**

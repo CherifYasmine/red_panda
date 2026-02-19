@@ -8,17 +8,18 @@ public class StudentMapper {
     
     public static StudentDTO toDTO(Student entity) {
         if (entity == null) return null;
-        return new StudentDTO(
-            entity.getId(),
-            entity.getFirstName(),
-            entity.getLastName(),
-            entity.getEmail(),
-            entity.getGradeLevel(),
-            entity.getEnrollmentYear(),
-            entity.getExpectedGraduationYear(),
-            entity.getStatus() != null ? entity.getStatus().name() : null,
-            entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null
-        );
+        StudentDTO dto = new StudentDTO();
+        dto.setId(entity.getId());
+        dto.setFirstName(entity.getFirstName());
+        dto.setLastName(entity.getLastName());
+        dto.setEmail(entity.getEmail());
+        dto.setGradeLevel(entity.getGradeLevel());
+        dto.setEnrollmentYear(entity.getEnrollmentYear());
+        dto.setExpectedGraduationYear(entity.getExpectedGraduationYear());
+        dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
+        dto.setCreatedAt(entity.getCreatedAt() != null ? entity.getCreatedAt().toString() : null);
+        // academicMetrics is set by the controller's enrichWithMetrics method
+        return dto;
     }
     
     public static Student toEntity(StudentDTO dto) {

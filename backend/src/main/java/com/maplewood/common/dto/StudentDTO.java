@@ -17,4 +17,5 @@ public class StudentDTO {
     private Integer expectedGraduationYear;
     private String status;
     private String createdAt;
+    private AcademicMetricsDTO academicMetrics;
 }
