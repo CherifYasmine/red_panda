@@ -87,6 +87,18 @@ public class SemesterController {
     }
     
     /**
+     * GET semester order reference (for UI)
+     * Returns mapping of semester order values: 1=Fall, 2=Spring
+     */
+    @GetMapping("/reference/order")
+    public ResponseEntity<?> getSemesterOrderReference() {
+        return ResponseEntity.ok(java.util.Map.of(
+            1, "Fall",
+            2, "Spring"
+        ));
+    }
+    
+    /**
      * POST create new semester
      */
     @PostMapping

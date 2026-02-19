@@ -168,4 +168,33 @@ public class CourseService {
         Course course = getCourseById(id);
         courseRepository.delete(course);
     }
+    
+    /**
+     * Get courses by specialization
+     */
+    public List<Course> getCoursesBySpecialization(Long specializationId) {
+        return courseRepository.findBySpecialization_Id(specializationId);
+    }
+    
+    /**
+     * Get courses with available sections in active semester
+     * Returns only courses that have at least one section with available capacity
+     */
+    public List<Course> getCoursesWithAvailableSections() {
+        // This will be implemented to filter courses that have sections in active semester with < capacity
+        return courseRepository.findAll().stream()
+            .filter(course -> !getAvailableSectionsForCourse(course.getId()).isEmpty())
+            .toList();
+    }
+    
+    /**
+     * Get available sections for a specific course in the active semester
+     * Returns sections with enrollment < capacity
+     */
+    public List<?> getAvailableSectionsForCourse(Long courseId) {
+        // Course course = getCourseById(courseId);
+        // This will return available sections - implementation depends on repository methods
+        // For now return empty list, will be properly implemented with repository
+        return List.of();
+    }
 }

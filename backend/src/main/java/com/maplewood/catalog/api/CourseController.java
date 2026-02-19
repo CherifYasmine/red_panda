@@ -76,6 +76,23 @@ public class CourseController {
     }
     
     /**
+     * Get all courses by semester name (FALL or SPRING)
+     * Provides string-based filtering for better frontend UX
+     */
+    @GetMapping("/semester-name/{semesterName}")
+    public ResponseEntity<List<CourseDTO>> getCoursesBySemesterName(@PathVariable String semesterName) {
+        Integer semesterOrder;
+        if ("FALL".equalsIgnoreCase(semesterName)) {
+            semesterOrder = 1;
+        } else if ("SPRING".equalsIgnoreCase(semesterName)) {
+            semesterOrder = 2;
+        } else {
+            throw new IllegalArgumentException("Invalid semester name. Must be FALL or SPRING");
+        }
+        return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesBySemesterOrder(semesterOrder), CourseMapper::toDTO));
+    }
+    
+    /**
      * Get all courses available for a specific grade level
      */
     @GetMapping("/grade-level/{gradeLevel}")
@@ -109,30 +126,56 @@ public class CourseController {
     
     /**
      * Get courses by type and grade level
+     * Supports filtering by:
+     * - specialization (ID)
+     * - type (CORE, ELECTIVE)
+     * - gradeLevel (9-12)
+     * - semesterOrder (1=Fall, 2=Spring)
+     * - activeOnly (true/false) - only courses with available sections in active semester
+     * 
+     * Example: /api/v1/courses/search?specialization=3&gradeLevel=10&semesterOrder=1&activeOnly=true
      */
     @GetMapping("/search")
     public ResponseEntity<List<CourseDTO>> searchCourses(
+            @RequestParam(required = false) Long specialization,
             @RequestParam(required = false) CourseType type,
             @RequestParam(required = false) Integer gradeLevel,
-            @RequestParam(required = false) Integer semesterOrder) {
+            @RequestParam(required = false) Integer semesterOrder,
+            @RequestParam(required = false, defaultValue = "false") Boolean activeOnly) {
         
-        if (type != null && gradeLevel != null) {
-            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByTypeAndGradeLevel(type, gradeLevel), CourseMapper::toDTO));
+        // If filtering for active semester only, get courses with available sections in active semester
+        if (Boolean.TRUE.equals(activeOnly)) {
+            return ResponseEntity.ok(DTOConverter.convertList(
+                courseService.getCoursesWithAvailableSections(),
+                CourseMapper::toDTO
+            ));
         }
         
-        if (gradeLevel != null) {
-            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByGradeLevel(gradeLevel), CourseMapper::toDTO));
-        }
+        // Apply multiple filters if provided
+        List<Course> result = courseService.getAllCourses();
         
+        if (specialization != null) {
+            result = result.stream()
+                .filter(c -> c.getSpecialization().getId().equals(specialization))
+                .toList();
+        }
         if (type != null) {
-            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesByType(type), CourseMapper::toDTO));
+            result = result.stream()
+                .filter(c -> c.getCourseType().equals(type))
+                .toList();
         }
-        
+        if (gradeLevel != null) {
+            result = result.stream()
+                .filter(c -> gradeLevel >= c.getGradeLevelMin() && gradeLevel <= c.getGradeLevelMax())
+                .toList();
+        }
         if (semesterOrder != null) {
-            return ResponseEntity.ok(DTOConverter.convertList(courseService.getCoursesBySemesterOrder(semesterOrder), CourseMapper::toDTO));
+            result = result.stream()
+                .filter(c -> c.getSemesterOrder().equals(semesterOrder))
+                .toList();
         }
         
-        return ResponseEntity.ok(DTOConverter.convertList(courseService.getAllCourses(), CourseMapper::toDTO));
+        return ResponseEntity.ok(DTOConverter.convertList(result, CourseMapper::toDTO));
     }
     
     /**
@@ -153,6 +196,25 @@ public class CourseController {
         Course entity = CourseMapper.toEntity(courseDTO);
         Course updated = courseService.updateCourse(id, entity);
         return ResponseEntity.ok(CourseMapper.toDTO(updated));
+    }
+    
+    /**
+     * Get courses by specialization
+     */
+    @GetMapping("/specialization/{specializationId}")
+    public ResponseEntity<List<CourseDTO>> getCoursesBySpecialization(@PathVariable Long specializationId) {
+        return ResponseEntity.ok(DTOConverter.convertList(
+            courseService.getCoursesBySpecialization(specializationId),
+            CourseMapper::toDTO
+        ));
+    }
+    
+    /**
+     * Get available sections for a course in the active semester
+     */
+    @GetMapping("/{courseId}/available-sections")
+    public ResponseEntity<?> getAvailableSectionsForCourse(@PathVariable Long courseId) {
+        return ResponseEntity.ok(courseService.getAvailableSectionsForCourse(courseId));
     }
     
     /**

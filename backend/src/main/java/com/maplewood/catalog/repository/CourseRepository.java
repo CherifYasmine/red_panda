@@ -79,4 +79,9 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
      */
     @Query("SELECT c FROM Course c WHERE c.semesterOrder = :semesterOrder AND c.gradeLevelMin <= :studentGrade AND c.gradeLevelMax >= :studentGrade")
     List<Course> findBySemesterAndGradeLevel(@Param("semesterOrder") Integer semesterOrder, @Param("studentGrade") Integer studentGrade);
+    
+    /**
+     * Find all courses for a specific specialization by ID
+     */
+    List<Course> findBySpecialization_Id(Long specializationId);
 }
