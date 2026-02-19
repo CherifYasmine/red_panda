@@ -118,6 +118,7 @@ public class CourseSectionService {
      * Validates that:
      * 1. Teacher's specialization matches course's specialization
      * 2. Classroom's room type matches course specialization's required room type
+     * 3. Course semester order matches the active semester's order (Fall/Spring)
      */
     public CourseSection createCourseSectionFromDTO(CreateCourseSectionDTO createDTO) {
         CourseSection courseSection = new CourseSection();
@@ -150,6 +151,21 @@ public class CourseSectionService {
             throw new IllegalArgumentException(
                 "Classroom " + classroom.getName() + " has room type '" + classroom.getRoomType().getName() + 
                 "' but this course requires '" + course.getSpecialization().getRoomType().getName() + "' room type"
+            );
+        }
+        
+        // VALIDATION 3: Check course semester order matches active semester's order
+        if (course.getSemesterOrder() == null || activeSemester.getOrderInYear() == null) {
+            throw new IllegalArgumentException("Course and semester must have semester order defined");
+        }
+        
+        if (!course.getSemesterOrder().equals(activeSemester.getOrderInYear())) {
+            String courseSeasonName = course.getSemesterOrder() == 1 ? "Fall" : "Spring";
+            String semesterSeasonName = activeSemester.getOrderInYear() == 1 ? "Fall" : "Spring";
+            throw new IllegalArgumentException(
+                "Course " + course.getCode() + " is a " + courseSeasonName + " course (semester order: " + course.getSemesterOrder() + "), " +
+                "but the active semester is " + semesterSeasonName + " (" + activeSemester.getName() + " " + activeSemester.getYear() + 
+                ", semester order: " + activeSemester.getOrderInYear() + ")"
             );
         }
         
