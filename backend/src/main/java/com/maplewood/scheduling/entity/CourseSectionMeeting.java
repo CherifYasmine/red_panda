@@ -1,6 +1,10 @@
 package com.maplewood.scheduling.entity;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.maplewood.common.enums.DayOfWeek;
 
@@ -12,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +25,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "course_section_meetings")
+@Table(name = "course_section_meetings",
+    uniqueConstraints = @UniqueConstraint(
+        columnNames = {"section_id", "day_of_week", "start_time"}
+    )
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,6 +56,14 @@ public class CourseSectionMeeting {
     @Column(name = "end_time", nullable = false)
     @NotNull(message = "End time cannot be null")
     private LocalTime endTime;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     
     /**
      * Convenience method to get day as enum

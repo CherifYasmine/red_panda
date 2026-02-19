@@ -113,48 +113,44 @@ public class CourseSectionService {
     
     /**
      * Create new course section
-     * Resolves foreign keys to actual entities
+     * Loads all related entities from service using IDs
      */
-    public CourseSection createCourseSection(CourseSection courseSection) {
-        // Load actual entities if only IDs provided
-        if (courseSection.getCourse() != null && courseSection.getCourse().getId() != null) {
-            courseSection.setCourse(courseService.getCourseById(courseSection.getCourse().getId()));
-        }
-        if (courseSection.getTeacher() != null && courseSection.getTeacher().getId() != null) {
-            courseSection.setTeacher(teacherService.getTeacherById(courseSection.getTeacher().getId()));
-        }
-        if (courseSection.getClassroom() != null && courseSection.getClassroom().getId() != null) {
-            courseSection.setClassroom(classroomService.getClassroomById(courseSection.getClassroom().getId()));
-        }
-        if (courseSection.getSemester() != null && courseSection.getSemester().getId() != null) {
-            courseSection.setSemester(semesterService.getSemesterById(courseSection.getSemester().getId()));
-        }
+    public CourseSection createCourseSectionFromDTO(Long courseId, Long teacherId, Long classroomId, Long semesterId, Integer capacity) {
+        CourseSection courseSection = new CourseSection();
+        
+        // Load and set all entities
+        Course course = courseService.getCourseById(courseId);
+        Teacher teacher = teacherService.getTeacherById(teacherId);
+        Classroom classroom = classroomService.getClassroomById(classroomId);
+        Semester semester = semesterService.getSemesterById(semesterId);
+        
+        courseSection.setCourse(course);
+        courseSection.setTeacher(teacher);
+        courseSection.setClassroom(classroom);
+        courseSection.setSemester(semester);
+        courseSection.setCapacity(capacity);
+        courseSection.setEnrollmentCount(0);
+        
         return courseSectionRepository.save(courseSection);
     }
     
     /**
      * Update course section
+     * Only updates provided fields, loads related entities if IDs provided
      */
-    public CourseSection updateCourseSection(Long id, CourseSection updatedSection) {
+    public CourseSection updateCourseSectionFromDTO(Long id, Long teacherId, Long classroomId, Integer capacity) {
         CourseSection existing = getCourseSectionById(id);
         
-        if (updatedSection.getCourse() != null) {
-            existing.setCourse(updatedSection.getCourse());
+        if (teacherId != null) {
+            Teacher teacher = teacherService.getTeacherById(teacherId);
+            existing.setTeacher(teacher);
         }
-        if (updatedSection.getTeacher() != null) {
-            existing.setTeacher(updatedSection.getTeacher());
+        if (classroomId != null) {
+            Classroom classroom = classroomService.getClassroomById(classroomId);
+            existing.setClassroom(classroom);
         }
-        if (updatedSection.getClassroom() != null) {
-            existing.setClassroom(updatedSection.getClassroom());
-        }
-        if (updatedSection.getSemester() != null) {
-            existing.setSemester(updatedSection.getSemester());
-        }
-        if (updatedSection.getCapacity() != null) {
-            existing.setCapacity(updatedSection.getCapacity());
-        }
-        if (updatedSection.getEnrollmentCount() != null) {
-            existing.setEnrollmentCount(updatedSection.getEnrollmentCount());
+        if (capacity != null) {
+            existing.setCapacity(capacity);
         }
         
         return courseSectionRepository.save(existing);

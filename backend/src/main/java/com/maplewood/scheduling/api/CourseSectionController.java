@@ -18,16 +18,18 @@ import org.springframework.web.bind.annotation.RestController;
 import com.maplewood.catalog.entity.Course;
 import com.maplewood.catalog.service.CourseService;
 import com.maplewood.common.dto.CourseSectionDTO;
+import com.maplewood.common.dto.CreateCourseSectionDTO;
+import com.maplewood.common.dto.UpdateCourseSectionDTO;
 import com.maplewood.common.mapper.CourseSectionMapper;
 import com.maplewood.common.util.DTOConverter;
+import com.maplewood.scheduling.entity.CourseSection;
+import com.maplewood.scheduling.service.CourseSectionService;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
 import com.maplewood.school.service.ClassroomService;
 import com.maplewood.school.service.SemesterService;
 import com.maplewood.school.service.TeacherService;
-import com.maplewood.scheduling.entity.CourseSection;
-import com.maplewood.scheduling.service.CourseSectionService;
 
 import jakarta.validation.Valid;
 
@@ -149,9 +151,14 @@ public class CourseSectionController {
      * Create new course section
      */
     @PostMapping
-    public ResponseEntity<CourseSectionDTO> createCourseSection(@Valid @RequestBody CourseSectionDTO courseSectionDTO) {
-        CourseSection entity = CourseSectionMapper.toEntity(courseSectionDTO);
-        CourseSection created = courseSectionService.createCourseSection(entity);
+    public ResponseEntity<CourseSectionDTO> createCourseSection(@Valid @RequestBody CreateCourseSectionDTO createDTO) {
+        CourseSection created = courseSectionService.createCourseSectionFromDTO(
+            createDTO.getCourseId(),
+            createDTO.getTeacherId(),
+            createDTO.getClassroomId(),
+            createDTO.getSemesterId(),
+            createDTO.getCapacity()
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(CourseSectionMapper.toDTO(created));
     }
     
@@ -159,9 +166,13 @@ public class CourseSectionController {
      * Update course section
      */
     @PutMapping("/{id}")
-    public ResponseEntity<CourseSectionDTO> updateCourseSection(@PathVariable Long id, @Valid @RequestBody CourseSectionDTO courseSectionDTO) {
-        CourseSection entity = CourseSectionMapper.toEntity(courseSectionDTO);
-        CourseSection updated = courseSectionService.updateCourseSection(id, entity);
+    public ResponseEntity<CourseSectionDTO> updateCourseSection(@PathVariable Long id, @Valid @RequestBody UpdateCourseSectionDTO updateDTO) {
+        CourseSection updated = courseSectionService.updateCourseSectionFromDTO(
+            id,
+            updateDTO.getTeacherId(),
+            updateDTO.getClassroomId(),
+            updateDTO.getCapacity()
+        );
         return ResponseEntity.ok(CourseSectionMapper.toDTO(updated));
     }
     

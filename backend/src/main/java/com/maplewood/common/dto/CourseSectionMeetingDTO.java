@@ -1,6 +1,9 @@
 package com.maplewood.common.dto;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import com.maplewood.common.enums.DayOfWeek;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,14 +16,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseSectionDTO {
+public class CourseSectionMeetingDTO {
     private Long id;
-    private CourseDTO course;
-    private TeacherDTO teacher;
-    private ClassroomDTO classroom;
-    private SemesterDTO semester;
-    private Integer capacity;
-    private Integer enrollmentCount;
+    private CourseSectionDTO section;  // Full nested object for response
+    private DayOfWeek dayOfWeek;
+    private LocalTime startTime;
+    private LocalTime endTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

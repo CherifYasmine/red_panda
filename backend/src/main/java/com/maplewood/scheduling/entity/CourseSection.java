@@ -1,6 +1,10 @@
 package com.maplewood.scheduling.entity;
 
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.maplewood.catalog.entity.Course;
 import com.maplewood.school.entity.Classroom;
@@ -52,4 +56,12 @@ public class CourseSection {
     @ColumnDefault("0")
     @Column(name = "enrollment_count", nullable = false)
     private Integer enrollmentCount;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
