@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
-import { THEME } from '../constants/theme';
-import { Logo } from './common/Logo';
+import { useAuthStore } from '../../stores/authStore';
+import { THEME } from '../../constants/theme';
+import { Logo } from '../common/Logo';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();

@@ -1,14 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useEnrollmentStore } from '../stores/enrollmentStore';
 import { THEME } from '../constants/theme';
+import { StatsCard } from '../components/common/StatsCard';
 
 export function Dashboard() {
-  const { student, refreshStudent } = useAuthStore();
+  const { student, refreshStudent, studentId } = useAuthStore();
+  const { currentEnrollments, fetchCurrentEnrollments } = useEnrollmentStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch enrollments on mount
+  useEffect(() => {
+    if (studentId) {
+      fetchCurrentEnrollments(studentId);
+    }
+  }, [studentId, fetchCurrentEnrollments]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refreshStudent();
+    if (studentId) {
+      await fetchCurrentEnrollments(studentId);
+    }
     setIsRefreshing(false);
   };
 
@@ -16,6 +29,7 @@ export function Dashboard() {
   const firstName = student?.firstName || 'Student';
   const lastName = student?.lastName || '';
   const fullName = `${firstName} ${lastName}`.trim();
+  const enrolledCoursesCount = currentEnrollments?.length || 0;
 
   return (
     <div>
@@ -25,9 +39,22 @@ export function Dashboard() {
           <h1 className={`text-3xl font-bold ${THEME.colors.text.primary} mb-2`}>
             Welcome back, {fullName}! 👋
           </h1>
-          <p className={`${THEME.colors.text.secondary} text-lg`}>
-            Ready to plan your course schedule?
-          </p>
+          <div className="flex items-center gap-4">
+            <p className={`${THEME.colors.text.secondary} text-lg`}>
+              Ready to plan your course schedule?
+            </p>
+            {student?.status && (
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                student.status === 'ACTIVE' 
+                  ? 'bg-green-100 text-green-700' 
+                  : student.status === 'GRADUATED'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}>
+                {student.status}
+              </span>
+            )}
+          </div>
         </div>
         <button
           onClick={handleRefresh}
@@ -43,41 +70,46 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Card 1 */}
-        <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 border-2 ${THEME.colors.borders.light}`}>
-          <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-xl mb-4`}>
-            <svg className="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Enrolled Courses */}
+        <StatsCard
+          icon={
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </div>
-          <h3 className={`text-lg font-semibold ${THEME.colors.text.primary} mb-2`}>Enrolled Courses</h3>
-          <p className={`text-3xl font-bold ${THEME.colors.text.accent}`}>0</p>
-          <p className={`${THEME.colors.text.muted} text-sm mt-1`}>This semester</p>
-        </div>
+          }
+          title="Enrolled Courses"
+          value={enrolledCoursesCount}
+          subtitle="This semester"
+          iconGradient="from-blue-100 to-cyan-100"
+        />
 
-        {/* Card 2 */}
-        <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 border-2 ${THEME.colors.borders.light}`}>
-          <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl mb-4`}>
-            <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* GPA */}
+        <StatsCard
+          icon={
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </div>
-          <h3 className={`text-lg font-semibold ${THEME.colors.text.primary} mb-2`}>GPA</h3>
-          <p className={`text-3xl font-bold text-teal-600`}>{metrics?.gpa || '0.0'}</p>
-          <p className={`${THEME.colors.text.muted} text-sm mt-1`}>{metrics?.gpa ? 'Current' : 'Not yet calculated'}</p>
-        </div>
+          }
+          title="GPA"
+          value={metrics?.gpa || '0.0'}
+          subtitle={metrics?.gpa ? 'Current' : 'Not yet calculated'}
+          valueColor="text-teal-600"
+          iconGradient="from-emerald-100 to-teal-100"
+        />
 
-        {/* Card 3 */}
-        <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 border-2 ${THEME.colors.borders.light}`}>
-          <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-100 to-amber-100 rounded-xl mb-4`}>
-            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {/* Credits */}
+        <StatsCard
+          icon={
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </div>
-          <h3 className={`text-lg font-semibold ${THEME.colors.text.primary} mb-2`}>Credits</h3>
-          <p className={`text-3xl font-bold text-orange-600`}>{metrics?.creditsEarned || '0'}/30</p>
-          <p className={`${THEME.colors.text.muted} text-sm mt-1`}>This semester</p>
-        </div>
+          }
+          title="Credits"
+          value={`${metrics?.creditsEarned || '0'}/30`}
+          subtitle="This semester"
+          valueColor="text-orange-600"
+          iconGradient="from-orange-100 to-amber-100"
+        />
       </div>
 
       {/* Quick Actions */}

@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-do
 import App from './App';
 import LoginPage from './pages/LoginPage';
 import { Dashboard } from './pages/Dashboard';
-import { Layout } from './components/Layout';
+import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 const routes: RouteObject[] = [
