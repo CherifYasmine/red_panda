@@ -81,10 +81,7 @@ export function CourseCatalog() {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {courses.map((course) => (
-              <CourseCard key={course.id} course={course} onEnroll={(courseId) => {
-                console.log('Enroll clicked for course:', courseId);
-                // TODO: Implement enrollment logic
-              }} />
+              <CourseCard key={course.id} course={course} />
             ))}
           </div>
 

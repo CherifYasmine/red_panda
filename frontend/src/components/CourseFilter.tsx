@@ -143,7 +143,7 @@ export function CourseFilter({ onFilterChange }: CourseFilterProps) {
             </div>
 
             {/* Active Only Filter */}
-            {/* <div>
+            <div>
               <label className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-2`}>
                 Availability
               </label>
@@ -158,7 +158,7 @@ export function CourseFilter({ onFilterChange }: CourseFilterProps) {
                   Active sections only
                 </label>
               </div>
-            </div> */}
+            </div>
           </div>
 
           {/* Reset Button */}

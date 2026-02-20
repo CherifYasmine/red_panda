@@ -3,10 +3,9 @@ import { THEME } from '../constants/theme';
 
 interface CourseCardProps {
   course: Course;
-  onEnroll?: (courseId: number) => void;
 }
 
-export function CourseCard({ course, onEnroll }: CourseCardProps) {
+export function CourseCard({ course }: CourseCardProps) {
   const gradeLevel = course.gradeLevelMin === course.gradeLevelMax 
     ? `Grade ${course.gradeLevelMin}` 
     : `Grades ${course.gradeLevelMin}-${course.gradeLevelMax}`;
@@ -69,16 +68,6 @@ export function CourseCard({ course, onEnroll }: CourseCardProps) {
           <p className={`font-semibold text-amber-700`}>{course.prerequisite.name}</p>
           <p className={`text-xs text-amber-600`}>{course.prerequisite.code}</p>
         </div>
-      )}
-
-      {/* Enroll Button */}
-      {onEnroll && (
-        <button
-          onClick={() => onEnroll(course.id)}
-          className={`w-full px-4 py-2 bg-gradient-to-r ${THEME.colors.gradients.button} text-white font-semibold rounded-lg hover:shadow-md transition-all transform hover:scale-105 active:scale-95`}
-        >
-          Enroll in Course
-        </button>
       )}
     </div>
   );
