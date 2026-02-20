@@ -3,6 +3,10 @@ import App from './App';
 import LoginPage from './pages/LoginPage';
 import { Dashboard } from './pages/Dashboard';
 import { CourseCatalog } from './pages/CourseCatalog';
+import { CourseDetail } from './pages/CourseDetail';
+import { Schedule } from './pages/Schedule';
+import { StudentHistory } from './pages/StudentHistory';
+import { AdminPanel } from './pages/AdminPanel';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -31,6 +35,46 @@ const routes: RouteObject[] = [
           <ProtectedRoute>
             <Layout>
               <CourseCatalog />
+            </Layout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'course/:id',
+        element: (
+          <ProtectedRoute>
+            <Layout>
+              <CourseDetail />
+            </Layout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'schedule',
+        element: (
+          <ProtectedRoute>
+            <Layout>
+              <Schedule />
+            </Layout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'history',
+        element: (
+          <ProtectedRoute>
+            <Layout>
+              <StudentHistory />
+            </Layout>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin',
+        element: (
+          <ProtectedRoute>
+            <Layout>
+              <AdminPanel />
             </Layout>
           </ProtectedRoute>
         ),

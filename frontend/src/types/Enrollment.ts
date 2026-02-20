@@ -6,14 +6,13 @@ import type { Course } from './Course';
 
 /**
  * Current Enrollment Type
- * Represents an active enrollment of a student in a course section
  */
 export interface CurrentEnrollment {
   id: number;
   studentId: number;
-  courseSection: CourseSection;
+  section: CourseSection;
   semester: Semester;
-  grade?: string | null; // Final grade (null until course ends)
+  grade?: string | null;
   status: EnrollmentStatus;
   createdAt: string;
   updatedAt: string;

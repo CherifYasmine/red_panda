@@ -1,11 +1,13 @@
-import type { Course } from '../types/Course';
-import { THEME } from '../constants/theme';
+import { useNavigate } from 'react-router-dom';
+import type { Course } from '../../types/Course';
+import { THEME } from '../../constants/theme';
 
 interface CourseCardProps {
   course: Course;
 }
 
 export function CourseCard({ course }: CourseCardProps) {
+  const navigate = useNavigate();
   const gradeLevel = course.gradeLevelMin === course.gradeLevelMax 
     ? `Grade ${course.gradeLevelMin}` 
     : `Grades ${course.gradeLevelMin}-${course.gradeLevelMax}`;
@@ -16,12 +18,15 @@ export function CourseCard({ course }: CourseCardProps) {
     : 'bg-purple-100 text-purple-700';
 
   return (
-    <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 border-2 ${THEME.colors.borders.light} hover:shadow-lg transition-all`}>
+    <div
+      className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 border-2 ${THEME.colors.borders.light} hover:shadow-lg hover:cursor-pointer transition-all`}
+      onClick={() => navigate(`/course/${course.id}`)}
+    >
       {/* Header with badge */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-4 cursor-pointer">
         <div className="flex-1">
           <p className={`text-sm font-semibold ${THEME.colors.text.muted} mb-1`}>{course.code}</p>
-          <h3 className={`text-lg font-bold ${THEME.colors.text.primary}`}>{course.name}</h3>
+          <h3 className={`text-lg font-bold ${THEME.colors.text.primary} hover:text-cyan-600 transition-colors`}>{course.name}</h3>
         </div>
         <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap ml-2 ${courseTypeColor}`}>
           {course.courseType}

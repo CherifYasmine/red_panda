@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useCourseStore } from '../stores/courseStore';
-import { THEME } from '../constants/theme';
-import { CourseType as CourseTypeEnum } from '../types/CourseType';
+import { useCourseStore } from '../../stores/courseStore';
+import { THEME } from '../../constants/theme';
+import { CourseType as CourseTypeEnum } from '../../types/CourseType';
 
-interface CourseFilterProps {
-  onFilterChange: () => void;
-}
 
 const GRADE_LEVELS = [9, 10, 11, 12];
 const SEMESTERS = [
@@ -13,7 +10,7 @@ const SEMESTERS = [
   { value: 2, label: 'Spring' },
 ];
 
-export function CourseFilter({ onFilterChange }: CourseFilterProps) {
+export function CourseFilter() {
   const { specializations, filters, setFilters, fetchSpecializations, resetFilters } = useCourseStore();
   const [localFilters, setLocalFilters] = useState(filters);
   const [isOpen, setIsOpen] = useState(false);
@@ -26,13 +23,11 @@ export function CourseFilter({ onFilterChange }: CourseFilterProps) {
     const updated = { ...localFilters, [key]: value };
     setLocalFilters(updated);
     setFilters(updated);
-    onFilterChange();
   };
 
   const handleReset = () => {
     setLocalFilters({});
     resetFilters();
-    onFilterChange();
   };
 
   const hasActiveFilters = Object.values(localFilters).some(v => v !== null && v !== undefined && v !== false);
@@ -143,7 +138,7 @@ export function CourseFilter({ onFilterChange }: CourseFilterProps) {
             </div>
 
             {/* Active Only Filter */}
-            <div>
+            {/* <div>
               <label className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-2`}>
                 Availability
               </label>
@@ -158,7 +153,7 @@ export function CourseFilter({ onFilterChange }: CourseFilterProps) {
                   Active sections only
                 </label>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Reset Button */}

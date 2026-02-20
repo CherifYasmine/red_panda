@@ -4,9 +4,11 @@
  */
 export interface Semester {
   id: number;
+  name: string; // 'FALL' | 'SPRING'
   year: number;
-  semesterNumber: number; // 1 for Fall, 2 for Spring
+  orderInYear: number; // 1 for Fall, 2 for Spring
   startDate: string;
   endDate: string;
+  isActive: boolean;
   createdAt: string;
 }

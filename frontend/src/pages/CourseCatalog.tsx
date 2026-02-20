@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCourseStore } from '../stores/courseStore';
-import { CourseCard } from '../components/CourseCard';
-import { CourseFilter } from '../components/CourseFilter';
+import { CourseCard } from '../components/course/CourseCard';
+import { CourseFilter } from '../components/course/CourseFilter';
 import { THEME } from '../constants/theme';
 
 const PAGE_SIZE = 10;
@@ -10,17 +10,12 @@ export function CourseCatalog() {
   const { courses, totalPages, currentPage, isLoading, error, filters, fetchCourses } = useCourseStore();
   const [pageSize] = useState(PAGE_SIZE);
 
-  // Fetch courses on mount
+  // Fetch courses when filters change (always reset to page 0)
   useEffect(() => {
-    fetchCourses(currentPage, pageSize, filters);
-  }, [currentPage, pageSize, filters, fetchCourses]);
-
-  // Fetch courses when filters change (reset to page 0)
-  const handleFilterChange = () => {
     fetchCourses(0, pageSize, filters);
-  };
+  }, [filters, pageSize, fetchCourses]);
 
-  // Handle pagination
+  // Handle pagination separately
   const handleNextPage = () => {
     if (currentPage < totalPages - 1) {
       fetchCourses(currentPage + 1, pageSize, filters);
@@ -53,7 +48,7 @@ export function CourseCatalog() {
 
       {/* Filters */}
       <div className="mb-8">
-        <CourseFilter onFilterChange={handleFilterChange} />
+        <CourseFilter />
       </div>
 
       {/* Error Message */}
