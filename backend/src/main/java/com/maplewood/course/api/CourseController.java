@@ -127,7 +127,7 @@ public class CourseController {
     }
     
     /**
-     * Get courses by type and grade level
+     * Search courses with filters and pagination
      * Supports filtering by:
      * - specialization (ID)
      * - type (CORE, ELECTIVE)
@@ -135,49 +135,21 @@ public class CourseController {
      * - semesterOrder (1=Fall, 2=Spring)
      * - activeOnly (true/false) - only courses with available sections in active semester
      * 
-     * Example: /api/v1/courses/search?specialization=3&gradeLevel=10&semesterOrder=1&activeOnly=true
      */
     @GetMapping("/search")
-    public ResponseEntity<List<CourseDTO>> searchCourses(
+    public ResponseEntity<Page<CourseDTO>> searchCourses(
             @RequestParam(required = false) Long specialization,
             @RequestParam(required = false) CourseType type,
             @RequestParam(required = false) Integer gradeLevel,
             @RequestParam(required = false) Integer semesterOrder,
-            @RequestParam(required = false, defaultValue = "false") Boolean activeOnly) {
+            @RequestParam(required = false, defaultValue = "false") Boolean activeOnly,
+            Pageable pageable) {
         
-        // If filtering for active semester only, get courses with available sections in active semester
-        if (Boolean.TRUE.equals(activeOnly)) {
-            return ResponseEntity.ok(DTOConverter.convertList(
-                courseService.getCoursesWithAvailableSections(),
-                CourseMapper::toDTO
-            ));
-        }
-        
-        // Apply multiple filters if provided
-        List<Course> result = courseService.getAllCourses();
-        
-        if (specialization != null) {
-            result = result.stream()
-                .filter(c -> c.getSpecialization().getId().equals(specialization))
-                .toList();
-        }
-        if (type != null) {
-            result = result.stream()
-                .filter(c -> c.getCourseType().equals(type))
-                .toList();
-        }
-        if (gradeLevel != null) {
-            result = result.stream()
-                .filter(c -> gradeLevel >= c.getGradeLevelMin() && gradeLevel <= c.getGradeLevelMax())
-                .toList();
-        }
-        if (semesterOrder != null) {
-            result = result.stream()
-                .filter(c -> c.getSemesterOrder().equals(semesterOrder))
-                .toList();
-        }
-        
-        return ResponseEntity.ok(DTOConverter.convertList(result, CourseMapper::toDTO));
+        // Use overloaded method that combines all filters including activeOnly
+        return ResponseEntity.ok(
+            courseService.searchCourses(specialization, type, gradeLevel, semesterOrder, activeOnly, pageable)
+                .map(CourseMapper::toDTO)
+        );
     }
     
     /**

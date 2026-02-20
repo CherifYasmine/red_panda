@@ -5,14 +5,21 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.maplewood.common.enums.CourseType;
 import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.course.entity.Course;
+import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.repository.CourseRepository;
+import com.maplewood.course.repository.CourseSectionRepository;
+import com.maplewood.course.specification.CourseSpecification;
+import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Specialization;
+import com.maplewood.school.repository.SemesterRepository;
 
 /**
  * Service for Course operations
@@ -23,6 +30,12 @@ public class CourseService {
     
     @Autowired
     private CourseRepository courseRepository;
+    
+    @Autowired
+    private CourseSectionRepository courseSectionRepository;
+    
+    @Autowired
+    private SemesterRepository semesterRepository;
     
     /**
      * Get all courses with pagination
@@ -36,6 +49,63 @@ public class CourseService {
      */
     public List<Course> getAllCourses() {
         return courseRepository.findAll();
+    }
+    
+    /**
+     * Search courses with filters using Specifications
+     */
+    public Page<Course> searchCourses(
+            Long specialization,
+            CourseType type,
+            Integer gradeLevel,
+            Integer semesterOrder,
+            Pageable pageable) {
+        
+        Specification<Course> spec = CourseSpecification.withFilters(
+            specialization,
+            type,
+            gradeLevel,
+            semesterOrder
+        );
+        
+        return courseRepository.findAll(spec, pageable);
+    }
+    
+    /**
+     * Search courses with filters and optional activeOnly parameter
+     * If activeOnly=true, combines specification filters with availability check
+     */
+    public Page<Course> searchCourses(
+            Long specialization,
+            CourseType type,
+            Integer gradeLevel,
+            Integer semesterOrder,
+            Boolean activeOnly,
+            Pageable pageable) {
+        
+        // Get all courses matching specification filters
+        Specification<Course> spec = CourseSpecification.withFilters(
+            specialization,
+            type,
+            gradeLevel,
+            semesterOrder
+        );
+        
+        Page<Course> results = courseRepository.findAll(spec, pageable);
+        
+        // If activeOnly, filter results to only those with available sections
+        if (Boolean.TRUE.equals(activeOnly)) {
+            List<Course> filtered = results.getContent().stream()
+                .filter(course -> !getAvailableSectionsForCourse(course.getId()).isEmpty())
+                .toList();
+            
+            // Rebuild the page with filtered content
+            // Note: This is in-memory pagination, not ideal for large datasets
+            // but necessary because availability requires runtime checking
+            return new PageImpl<>(filtered, pageable, filtered.size());
+        }
+        
+        return results;
     }
     
     /**
@@ -197,13 +267,41 @@ public class CourseService {
     }
     
     /**
+     * Get courses with available sections in active semester with pagination
+     * Returns only courses that have at least one section with available capacity
+     */
+    public Page<Course> getCoursesWithAvailableSections(Pageable pageable) {
+        List<Course> allAvailable = getCoursesWithAvailableSections();
+        
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), allAvailable.size());
+        List<Course> pageContent = allAvailable.subList(start, end);
+        
+        return new PageImpl<>(pageContent, pageable, allAvailable.size());
+    }
+    
+    /**
      * Get available sections for a specific course in the active semester
      * Returns sections with enrollment < capacity
      */
-    public List<?> getAvailableSectionsForCourse(Long courseId) {
-        // Course course = getCourseById(courseId);
-        // This will return available sections - implementation depends on repository methods
-        // For now return empty list, will be properly implemented with repository
-        return List.of();
+    public List<CourseSection> getAvailableSectionsForCourse(Long courseId) {
+        Course course = getCourseById(courseId);
+        
+        // Get active semester
+        Semester activeSemester = semesterRepository.findByIsActive(true)
+            .orElse(null);
+        
+        if (activeSemester == null) {
+            return List.of();
+        }
+        
+        // Get all sections of this course in the active semester
+        List<CourseSection> sections = courseSectionRepository
+            .findByCourseAndSemester(course, activeSemester);
+        
+        // Filter to only those with available capacity (enrollmentCount < capacity)
+        return sections.stream()
+            .filter(section -> section.getEnrollmentCount() < section.getCapacity())
+            .toList();
     }
 }

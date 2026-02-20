@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useEnrollmentStore } from '../stores/enrollmentStore';
 import { THEME } from '../constants/theme';
 import { StatsCard } from '../components/common/StatsCard';
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { student, refreshStudent, studentId } = useAuthStore();
   const { currentEnrollments, fetchCurrentEnrollments } = useEnrollmentStore();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -116,7 +118,7 @@ export function Dashboard() {
       <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-8 border-2 ${THEME.colors.borders.light}`}>
         <h2 className={`text-2xl font-bold ${THEME.colors.text.primary} mb-6`}>Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button className={`px-6 py-4 bg-gradient-to-r ${THEME.colors.gradients.button} text-white font-semibold rounded-xl hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3`}>
+          <button onClick={() => navigate('/courses')} className={`px-6 py-4 bg-gradient-to-r ${THEME.colors.gradients.button} text-white font-semibold rounded-xl hover:shadow-lg transition-all transform hover:scale-105 active:scale-95 flex items-center gap-3`}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>

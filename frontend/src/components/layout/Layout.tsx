@@ -39,7 +39,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <a href="/dashboard" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
               Dashboard
             </a>
-            <a href="#" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+            <a href="/courses" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
               Browse Courses
             </a>
             <a href="#" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
