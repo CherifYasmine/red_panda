@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import type { Student } from '../types/Student';
 
 /**
  * Custom hook for managing and fetching student data

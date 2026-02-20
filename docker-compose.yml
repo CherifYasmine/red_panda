@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: maplewood-backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./maplewood_school.sqlite:/app/maplewood_school.sqlite
+      - ./backend/src:/app/src
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/maplewood_school.sqlite
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    networks:
+      - maplewood-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/courses"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: maplewood-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://backend:8080
+    depends_on:
+      - backend
+    networks:
+      - maplewood-network
+
+networks:
+  maplewood-network:
+    driver: bridge
