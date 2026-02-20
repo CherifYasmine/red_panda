@@ -110,7 +110,87 @@ export function Dashboard() {
           valueColor="text-orange-600"
           iconGradient="from-orange-100 to-amber-100"
         />
-      </div>      
+      </div>
+
+      {/* Credits Progress Section */}
+      <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-8 border-2 ${THEME.colors.borders.light}`}>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className={`text-xl font-bold ${THEME.colors.text.primary}`}>
+            Graduation Progress
+          </h2>
+          {metrics?.isGraduated && (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+              ✓ Graduated
+            </span>
+          )}
+        </div>
+
+        {/* Credits Progress */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <span className={`font-semibold ${THEME.colors.text.secondary}`}>
+              Credits Earned
+            </span>
+            <span className={`text-lg font-bold ${THEME.colors.text.primary}`}>
+              {metrics?.creditsEarned || 0}/30
+            </span>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className={`h-3 bg-gray-200 rounded-full overflow-hidden`}>
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${
+                (metrics?.creditsEarned || 0) >= 30
+                  ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+                  : (metrics?.creditsEarned || 0) >= 20
+                  ? 'bg-gradient-to-r from-blue-400 to-cyan-500'
+                  : 'bg-gradient-to-r from-orange-400 to-amber-500'
+              }`}
+              style={{
+                width: `${Math.min(((metrics?.creditsEarned || 0) / 30) * 100, 100)}%`,
+              }}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between mt-2">
+            <span className={`text-xs ${THEME.colors.text.secondary}`}>
+              {Math.round(((metrics?.creditsEarned || 0) / 30) * 100)}% complete
+            </span>
+            <span className={`text-xs ${THEME.colors.text.secondary}`}>
+              {30 - (metrics?.creditsEarned || 0)} credits remaining
+            </span>
+          </div>
+        </div>
+
+        {/* Current Semester Enrollment Status */}
+        <div className={`p-4 rounded-xl ${
+          enrolledCoursesCount >= 4
+            ? 'bg-yellow-50 border-2 border-yellow-200'
+            : 'bg-green-50 border-2 border-green-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className={`font-semibold ${
+              enrolledCoursesCount >= 4
+                ? 'text-yellow-700'
+                : 'text-green-700'
+            }`}>
+              This Semester
+            </span>
+            <span className={`text-lg font-bold ${
+              enrolledCoursesCount >= 4
+                ? 'text-yellow-700'
+                : 'text-green-700'
+            }`}>
+              {enrolledCoursesCount}/5 courses
+            </span>
+          </div>
+          {enrolledCoursesCount >= 4 && (
+            <p className="text-sm text-yellow-700 mt-2">
+              ⚠️ You're approaching the course limit for this semester
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
