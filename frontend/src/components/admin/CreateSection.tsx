@@ -15,9 +15,10 @@ interface CreateCourseSectionForm {
 
 interface CreateSectionProps {
   onSectionCreated?: () => void;
+  courseId?: number;
 }
 
-export function CreateSection({ onSectionCreated }: CreateSectionProps) {
+export function CreateSection({ onSectionCreated, courseId }: CreateSectionProps) {
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [classrooms, setClassrooms] = useState<Classroom[]>([]);
@@ -52,6 +53,35 @@ export function CreateSection({ onSectionCreated }: CreateSectionProps) {
         setCourses(coursesRes.data.content || []);
         setTeachers(teachersRes.data || []);
         setClassrooms(classroomsRes.data || []);
+
+        // If courseId is provided, pre-select it
+        if (courseId) {
+          const course = (coursesRes.data.content || []).find((c) => c.id === courseId);
+          if (course) {
+            setForm({
+              courseId: course.id,
+              teacherId: null,
+              classroomId: null,
+              capacity: null,
+            });
+
+            const courseSpecializationId = course.specialization?.id;
+            if (courseSpecializationId) {
+              const filtered = (teachersRes.data || []).filter(
+                (t) => t.specialization?.id === courseSpecializationId
+              );
+              setFilteredTeachers(filtered);
+            }
+
+            const roomTypeId = course.specialization?.roomType?.id;
+            if (roomTypeId) {
+              const filtered = (classroomsRes.data || []).filter(
+                (c) => c.roomType?.id === roomTypeId
+              );
+              setFilteredClassrooms(filtered);
+            }
+          }
+        }
       } catch (err) {
         setError(getErrorMessage(err, 'Failed to load data'));
       } finally {
@@ -60,7 +90,7 @@ export function CreateSection({ onSectionCreated }: CreateSectionProps) {
     };
 
     loadData();
-  }, []);
+  }, [courseId]);
 
   const handleCourseChange = (courseId: string) => {
     const selectedCourseId = parseInt(courseId);
@@ -183,24 +213,26 @@ export function CreateSection({ onSectionCreated }: CreateSectionProps) {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-2`}>
-            Course *
-          </label>
-          <select
-            value={form.courseId || ''}
-            onChange={(e) => handleCourseChange(e.target.value)}
-            className={`w-full px-4 py-2 border-2 ${THEME.colors.borders.light} rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500`}
-            required
-          >
-            <option value="">-- Select a course --</option>
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.code} - {course.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {!courseId && (
+          <div>
+            <label className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-2`}>
+              Course *
+            </label>
+            <select
+              value={form.courseId || ''}
+              onChange={(e) => handleCourseChange(e.target.value)}
+              className={`w-full px-4 py-2 border-2 ${THEME.colors.borders.light} rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500`}
+              required
+            >
+              <option value="">-- Select a course --</option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.code} - {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {selectedCourse && (
           <div className={`p-4 rounded-lg border-2 ${THEME.colors.borders.light} bg-blue-50`}>
@@ -265,12 +297,12 @@ export function CreateSection({ onSectionCreated }: CreateSectionProps) {
 
         <div>
           <label className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-2`}>
-            Capacity (1-100) *
+            Capacity (1-10) *
           </label>
           <input
             type="number"
             min="1"
-            max="100"
+            max="10"
             value={form.capacity || ''}
             onChange={(e) => setForm((prev) => ({ ...prev, capacity: e.target.value ? parseInt(e.target.value) : null }))}
             className={`w-full px-4 py-2 border-2 ${THEME.colors.borders.light} rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500`}

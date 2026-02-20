@@ -7,6 +7,9 @@ import { CourseDetail } from './pages/CourseDetail';
 import { Schedule } from './pages/Schedule';
 import { StudentHistory } from './pages/StudentHistory';
 import { AdminPanel } from './pages/AdminPanel';
+import { AdminCourses } from './components/admin/AdminCourses';
+import { AdminCourseDetail } from './components/admin/AdminCourseDetail';
+import { AdminSectionDetail } from './components/admin/AdminSectionDetail';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -71,13 +74,52 @@ const routes: RouteObject[] = [
       },
       {
         path: 'admin',
-        element: (
-          <ProtectedRoute>
-            <Layout>
-              <AdminPanel />
-            </Layout>
-          </ProtectedRoute>
-        ),
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/admin/courses" replace />,
+          },
+          {
+            path: 'courses',
+            element: (
+              <ProtectedRoute>
+                <Layout>
+                  <AdminCourses />
+                </Layout>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'courses/:courseId',
+            element: (
+              <ProtectedRoute>
+                <Layout>
+                  <AdminCourseDetail />
+                </Layout>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'courses/:courseId/sections/:sectionId',
+            element: (
+              <ProtectedRoute>
+                <Layout>
+                  <AdminSectionDetail />
+                </Layout>
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: 'quick',
+            element: (
+              <ProtectedRoute>
+                <Layout>
+                  <AdminPanel />
+                </Layout>
+              </ProtectedRoute>
+            ),
+          },
+        ],
       },
       {
         path: '',
