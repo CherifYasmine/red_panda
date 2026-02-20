@@ -1,6 +1,5 @@
 /**
- * Backend error response structure
- * Used for type-safe error handling across the frontend
+ * Backend error response
  */
 export interface BackendError {
   response?: {
