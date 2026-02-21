@@ -22,6 +22,7 @@ export function CourseDetail() {
   const [error, setError] = useState<string | null>(null);
   const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
   const [enrollmentSuccess, setEnrollmentSuccess] = useState<number | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -54,7 +55,11 @@ export function CourseDetail() {
               console.error(`Failed to fetch meetings for section ${section.id}:`, err);
             }
           }
-          setSectionMeetings(meetingsMap);
+          // Merge with existing enrolled section meetings instead of replacing
+          setSectionMeetings((prev) => {
+            const updated = { ...prev, ...meetingsMap };
+            return updated;
+          });
         }
       } catch (err) {
         setError('Failed to load course details');
@@ -70,6 +75,33 @@ export function CourseDetail() {
       fetchCurrentEnrollments(studentId);
     }
   }, [id, studentId, fetchCurrentEnrollments]);
+
+  // Fetch meetings for enrolled sections to detect conflicts
+  useEffect(() => {
+    const fetchEnrolledMeetings = async () => {
+      if (!currentEnrollments || currentEnrollments.length === 0) return;
+      
+      const newMeetings: Record<number, CourseSectionMeeting[]> = {};
+      for (const enrollment of currentEnrollments) {
+        try {
+          const meetingsRes = await client.get<CourseSectionMeeting[]>(
+            `/course-section-meetings/search/section/${enrollment.section.id}`
+          );
+          newMeetings[enrollment.section.id] = meetingsRes.data;
+        } catch (err) {
+          console.error(`Failed to fetch meetings for enrolled section ${enrollment.section.id}:`, err);
+        }
+      }
+      if (Object.keys(newMeetings).length > 0) {
+        setSectionMeetings((prev) => {
+          const updated = { ...prev, ...newMeetings };
+          return updated;
+        });
+      }
+    };
+
+    fetchEnrolledMeetings();
+  }, [currentEnrollments]);
 
   if (isLoading) {
     return (
@@ -111,8 +143,52 @@ export function CourseDetail() {
 
   const getDayName = (dayOfWeek: string): string => {
     if (!dayOfWeek) return '';
-    // Convert 'MONDAY' to 'Monday', 'TUESDAY' to 'Tuesday', etc.
     return dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1).toLowerCase();
+  };
+
+  const toggleSectionExpand = (sectionId: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(sectionId)) {
+      newExpanded.delete(sectionId);
+    } else {
+      newExpanded.add(sectionId);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const getScheduleConflicts = (sectionId: number) => {
+    if (!currentEnrollments) return [];
+    
+    const newMeetings = sectionMeetings[sectionId] || [];
+    const conflicts: Array<{course: string; teacher: string; day: string; time: string}> = [];
+
+    for (const enrollment of currentEnrollments) {
+      const existingMeetings = sectionMeetings[enrollment.section.id] || [];
+
+      for (const newMeeting of newMeetings) {
+        for (const existingMeeting of existingMeetings) {
+          if (newMeeting.dayOfWeek === existingMeeting.dayOfWeek) {
+            // Parse times as integers for proper comparison (HH:MM -> HHMM)
+            const newStart = parseInt(newMeeting.startTime.replace(':', ''));
+            const newEnd = parseInt(newMeeting.endTime.replace(':', ''));
+            const existStart = parseInt(existingMeeting.startTime.replace(':', ''));
+            const existEnd = parseInt(existingMeeting.endTime.replace(':', ''));
+
+
+            if (newStart < existEnd && existStart < newEnd) {
+              conflicts.push({
+                course: enrollment.section.course.name,
+                teacher: `${enrollment.section.teacher.firstName} ${enrollment.section.teacher.lastName}`,
+                day: getDayName(newMeeting.dayOfWeek),
+                time: `${newMeeting.startTime.substring(0, 5)}-${newMeeting.endTime.substring(0, 5)}`,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return conflicts;
   };
 
   const handleEnroll = async (sectionId: number) => {
@@ -231,58 +307,109 @@ export function CourseDetail() {
               const meetingStr = meetings
                 .map((m) => `${getDayName(m.dayOfWeek)} ${m.startTime.substring(0, 5)}-${m.endTime.substring(0, 5)}`)
                 .join(', ') || 'No scheduled times';
+              const isExpanded = expandedSections.has(section.id);
+              const isEnrolled = isAlreadyEnrolled(section.id);
+              const conflicts = !isEnrolled ? getScheduleConflicts(section.id) : [];
 
               return (
-                <div
-                  key={section.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                    enrollmentSuccess === section.id
-                      ? 'border-green-400 bg-green-50'
-                      : `${THEME.colors.borders.light} hover:bg-slate-50`
-                  }`}
-                >
-                  {/* Section Info */}
-                  <div className="flex-1">
-                    <div className="flex items-start gap-4">
-                      <div className="flex-1">
-                        <p className={`font-semibold ${THEME.colors.text.primary}`}>
-                          {section.teacher.firstName} {section.teacher.lastName}
-                        </p>
-                        <p className={`text-sm ${THEME.colors.text.secondary} mt-1`}>
-                          {section.classroom.name}
-                        </p>
-                        <p className={`text-xs ${THEME.colors.text.muted} mt-2`}>
-                          {meetingStr}
-                        </p>
+                <div key={section.id} className={`border-2 rounded-lg overflow-hidden transition-all ${isExpanded && !isEnrolled ? 'border-cyan-400' : THEME.colors.borders.light}`}>
+                  {/* Section Header */}
+                  <div className={`p-4 ${isExpanded && !isEnrolled ? 'bg-slate-50' : THEME.colors.backgrounds.card}`}>
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Expand Arrow and Section Info */}
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        {/* Expand Arrow (only shown when not enrolled) */}
+                        {!isEnrolled && (
+                          <button
+                            onClick={() => toggleSectionExpand(section.id)}
+                            className="flex-shrink-0 mt-1 p-1 hover:bg-slate-100 rounded transition-all"
+                            aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                          >
+                            <svg
+                              className={`w-5 h-5 text-slate-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                          </button>
+                        )}
+
+                        {/* Section Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start gap-4 justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className={`font-semibold ${THEME.colors.text.primary}`}>
+                                {section.teacher.firstName} {section.teacher.lastName}
+                              </p>
+                              <p className={`text-sm ${THEME.colors.text.secondary} mt-1`}>
+                                {section.classroom.name}
+                              </p>
+                              <p className={`text-xs ${THEME.colors.text.muted} mt-2`}>
+                                {meetingStr}
+                              </p>
+                            </div>
+                            <div className="text-right whitespace-nowrap flex-shrink-0">
+                              <p className={`text-sm font-semibold ${THEME.colors.text.accent}`}>
+                                {section.capacity} slots
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-right whitespace-nowrap">
-                        <p className={`text-sm font-semibold ${THEME.colors.text.accent}`}>
-                          {section.capacity} slots
-                        </p>
-                      </div>
+
+                      {/* Enroll Button */}
+                      <button
+                        onClick={() => handleEnroll(section.id)}
+                        disabled={enrollingSection === section.id || isAlreadyEnrolled(section.id)}
+                        className={`flex-shrink-0 px-4 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                          isAlreadyEnrolled(section.id)
+                            ? 'bg-slate-300 text-slate-600 cursor-not-allowed'
+                            : enrollmentSuccess === section.id
+                              ? 'bg-green-500 text-white'
+                              : `bg-gradient-to-r ${THEME.colors.gradients.button} text-white hover:shadow-md ${
+                                  enrollingSection === section.id ? 'opacity-50 cursor-not-allowed' : ''
+                                }`
+                        }`}
+                      >
+                        {isAlreadyEnrolled(section.id)
+                          ? 'Enrolled'
+                          : enrollingSection === section.id
+                            ? 'Enrolling...'
+                            : 'Enroll'}
+                      </button>
                     </div>
                   </div>
 
-                  {/* Enroll Button */}
-                  <button
-                    onClick={() => handleEnroll(section.id)}
-                    disabled={enrollingSection === section.id || isAlreadyEnrolled(section.id)}
-                    className={`ml-4 px-4 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
-                      isAlreadyEnrolled(section.id)
-                        ? 'bg-slate-300 text-slate-600 cursor-not-allowed'
-                        : enrollmentSuccess === section.id
-                          ? 'bg-green-500 text-white'
-                          : `bg-gradient-to-r ${THEME.colors.gradients.button} text-white hover:shadow-md ${
-                              enrollingSection === section.id ? 'opacity-50 cursor-not-allowed' : ''
-                            }`
-                    }`}
-                  >
-                    {isAlreadyEnrolled(section.id)
-                      ? 'Enrolled'
-                      : enrollingSection === section.id
-                        ? 'Enrolling...'
-                        : 'Enroll'}
-                  </button>
+                  {/* Expandable Conflicts Section */}
+                  {isExpanded && !isEnrolled && (
+                    <div className="border-t border-slate-200 bg-white p-4">
+                      {conflicts.length === 0 ? (
+                        <div className="flex items-center gap-3 text-green-700">
+                          <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span className="font-semibold text-sm">No schedule conflicts</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-sm font-semibold text-red-700 mb-3">Schedule Conflicts:</p>
+                          {conflicts.map((conflict, idx) => (
+                            <div key={idx} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <p className="text-sm font-semibold text-red-900">{conflict.course}</p>
+                              <p className="text-xs text-red-700 mt-1">
+                                {conflict.day} {conflict.time}
+                              </p>
+                              <p className="text-xs text-red-700 mt-1">
+                                with {conflict.teacher}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
