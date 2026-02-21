@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { THEME } from '../constants/theme';
 import client from '../api/client';
 import { useAuthStore } from '../stores/authStore';
+import { useEnrollmentStore } from '../stores/enrollmentStore';
 import type { Course } from '../types/Course';
 import type { CourseSection, CourseSectionMeeting } from '../types/CourseSection';
 import { getErrorMessage } from '../types/BackendError';
@@ -11,6 +12,7 @@ export function CourseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { studentId } = useAuthStore();
+  const { currentEnrollments, fetchCurrentEnrollments } = useEnrollmentStore();
   const [course, setCourse] = useState<Course | null>(null);
   const [prerequisiteChain, setPrerequisiteChain] = useState<Course[]>([]);
   const [sections, setSections] = useState<CourseSection[]>([]);
@@ -62,10 +64,12 @@ export function CourseDetail() {
       }
     };
 
-    if (id) {
+    if (id && studentId) {
       fetchCourseDetail();
+      // Fetch current enrollments to check for existing enrollments
+      fetchCurrentEnrollments(studentId);
     }
-  }, [id]);
+  }, [id, studentId, fetchCurrentEnrollments]);
 
   if (isLoading) {
     return (
@@ -121,14 +125,13 @@ export function CourseDetail() {
       setEnrollingSection(sectionId);
       setEnrollmentError(null);
       setEnrollmentSuccess(null);
-
-      // POST to enroll: /enrollments with payload { studentId, sectionId }
       await client.post('/enrollments', {
         studentId,
         sectionId: sectionId,
       });
 
       setEnrollmentSuccess(sectionId);
+      await fetchCurrentEnrollments(studentId);
       setTimeout(() => setEnrollmentSuccess(null), 3000);
     } catch (err: unknown) {
       const errorMsg = getErrorMessage(err, 'Failed to enroll in section');
@@ -136,6 +139,9 @@ export function CourseDetail() {
     } finally {
       setEnrollingSection(null);
     }
+  };
+  const isAlreadyEnrolled = (sectionId: number): boolean => {
+    return currentEnrollments?.some((enrollment) => enrollment.section.id === sectionId) ?? false;
   };
 
   return (
@@ -202,7 +208,7 @@ export function CourseDetail() {
       {/* Available Sections */}
       {sections.length > 0 && (
         <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-6 mb-8 border-2 ${THEME.colors.borders.light}`}>
-          <h2 className={`text-lg font-bold ${THEME.colors.text.primary} mb-4`}>Course Sections</h2>
+          <h2 className={`text-lg font-bold ${THEME.colors.text.primary} mb-4`}>Classes</h2>
 
           {enrollmentError && (
             <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded flex items-start justify-between">
@@ -260,16 +266,22 @@ export function CourseDetail() {
                   {/* Enroll Button */}
                   <button
                     onClick={() => handleEnroll(section.id)}
-                    disabled={enrollingSection === section.id}
+                    disabled={enrollingSection === section.id || isAlreadyEnrolled(section.id)}
                     className={`ml-4 px-4 py-2 rounded-lg font-semibold transition-all whitespace-nowrap ${
-                      enrollmentSuccess === section.id
-                        ? 'bg-green-500 text-white'
-                        : `bg-gradient-to-r ${THEME.colors.gradients.button} text-white hover:shadow-md ${
-                            enrollingSection === section.id ? 'opacity-50 cursor-not-allowed' : ''
-                          }`
+                      isAlreadyEnrolled(section.id)
+                        ? 'bg-slate-300 text-slate-600 cursor-not-allowed'
+                        : enrollmentSuccess === section.id
+                          ? 'bg-green-500 text-white'
+                          : `bg-gradient-to-r ${THEME.colors.gradients.button} text-white hover:shadow-md ${
+                              enrollingSection === section.id ? 'opacity-50 cursor-not-allowed' : ''
+                            }`
                     }`}
                   >
-                    {enrollingSection === section.id ? 'Enrolling...' : 'Enroll'}
+                    {isAlreadyEnrolled(section.id)
+                      ? 'Enrolled'
+                      : enrollingSection === section.id
+                        ? 'Enrolling...'
+                        : 'Enroll'}
                   </button>
                 </div>
               );

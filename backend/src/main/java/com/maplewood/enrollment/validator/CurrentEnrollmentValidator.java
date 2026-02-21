@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.maplewood.common.enums.CourseHistoryStatus;
+import com.maplewood.common.exception.EnrollmentValidationException;
+import com.maplewood.common.exception.ScheduleConflictException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.repository.CourseSectionMeetingRepository;
@@ -77,9 +79,10 @@ public class CurrentEnrollmentValidator {
         );
         
         if (courseCount > 0) {
-            throw new IllegalArgumentException(
-                "Student is already enrolled in " + enrollment.getCourseSection().getCourse().getName() + 
-                 "in this semester. Cannot take the same course twice per semester."
+            throw new EnrollmentValidationException(
+                "DUPLICATE_COURSE",
+                "Already enrolled in " + enrollment.getCourseSection().getCourse().getName() + 
+                 " in this semester. Cannot take the same course twice per semester."
             );
         }
     }
@@ -105,8 +108,9 @@ public class CurrentEnrollmentValidator {
         );
         
         if (alreadyPassed) {
-            throw new IllegalArgumentException(
-                "Student has already completed " + enrollment.getCourseSection().getCourse().getName() + 
+            throw new EnrollmentValidationException(
+                "COURSE_ALREADY_COMPLETED",
+                "Already completed " + enrollment.getCourseSection().getCourse().getName() + 
                 ". Cannot retake a course that has been passed."
             );
         }
@@ -137,9 +141,17 @@ public class CurrentEnrollmentValidator {
         }
         
         if (studentGradeLevel < courseGradeMin || studentGradeLevel > courseGradeMax) {
-            throw new IllegalArgumentException(
-                "Student grade level " + studentGradeLevel + 
-                " is not allowed for this course (requires grade " + courseGradeMin + "-" + courseGradeMax + ")"
+            String gradeRequirement;
+            if (courseGradeMin.equals(courseGradeMax)) {
+                gradeRequirement = "grade " + courseGradeMin;
+            } else {
+                gradeRequirement = "between grades " + courseGradeMin + " and " + courseGradeMax;
+            }
+            
+            throw new EnrollmentValidationException(
+                "GRADE_LEVEL_NOT_ALLOWED",
+                "Grade level " + studentGradeLevel + 
+                " is not allowed for this course (requires " + gradeRequirement + ")"
             );
         }
     }
@@ -162,7 +174,8 @@ public class CurrentEnrollmentValidator {
         long currentEnrollments = enrollmentRepository.countByCourseSection(section);
         
         if (currentEnrollments >= capacity) {
-            throw new IllegalArgumentException(
+            throw new EnrollmentValidationException(
+                "SECTION_FULL",
                 "Section has reached maximum capacity (" + capacity + " students)"
             );
         }
@@ -187,8 +200,9 @@ public class CurrentEnrollmentValidator {
         );
         
         if (currentCourses >= 5) {
-            throw new IllegalArgumentException(
-                "Student cannot enroll in more than 5 courses per semester (already enrolled in 5)"
+            throw new EnrollmentValidationException(
+                "COURSE_LIMIT_EXCEEDED",
+                "Cannot enroll in more than 5 courses per semester (already enrolled in 5)"
             );
         }
     }
@@ -221,8 +235,9 @@ public class CurrentEnrollmentValidator {
         );
         
         if (!hasPrerequisite) {
-            throw new IllegalArgumentException(
-                "Student has not completed prerequisite: " + course.getPrerequisite().getName() + "(code: " + course.getPrerequisite().getCode() + ")"
+            throw new EnrollmentValidationException(
+                "PREREQUISITE_NOT_MET",
+                "Prerequisite not completed: " + course.getPrerequisite().getName() + " (code: " + course.getPrerequisite().getCode() + ")"
             );
         }
         
@@ -277,8 +292,8 @@ public class CurrentEnrollmentValidator {
             for (com.maplewood.course.entity.CourseSectionMeeting newMeeting : newMeetings) {
                 for (com.maplewood.course.entity.CourseSectionMeeting existingMeeting : existingMeetings) {
                     if (newMeeting.overlaps(existingMeeting)) {
-                        throw new IllegalArgumentException(
-                            "Schedule conflict: " + existing.getCourseSection().getCourse().getName() + 
+                        throw new ScheduleConflictException(
+                            "Schedule conflict: Course " + existing.getCourseSection().getCourse().getName() + 
                             " meets at the same time"
                         );
                     }

@@ -47,22 +47,18 @@ public class CourseSectionMeetingValidator {
     
     /**
      * VALIDATION 1: Uniqueness Check
-     * Ensures same meeting time doesn't already exist for this section
-     * On update, excludes the current meeting from the check
      */
     private void validateUniqueness(CourseSectionMeeting meeting) {
         if (meeting.getSection() == null || meeting.getSection().getId() == null) {
             throw new IllegalArgumentException("Section must be provided");
         }
         
-        // Get all existing meetings with same day and start time
         List<CourseSectionMeeting> conflictingMeetings = repository.findBySection_IdAndDayOfWeekAndStartTime(
             meeting.getSection().getId(),
             meeting.getDayOfWeek(),
             meeting.getStartTime()
         );
         
-        // For updates, exclude the current meeting being updated
         if (meeting.getId() != null) {
             conflictingMeetings = conflictingMeetings.stream()
                 .filter(m -> !m.getId().equals(meeting.getId()))
@@ -79,7 +75,6 @@ public class CourseSectionMeetingValidator {
     
     /**
      * VALIDATION 2: Time Window Validation
-     * - Start time must be before end time
      */
     private void validateTimeWindow(CourseSectionMeeting meeting) {
         LocalTime start = meeting.getStartTime();
@@ -93,7 +88,6 @@ public class CourseSectionMeetingValidator {
     
     /**
      * VALIDATION 3: No Lunch Hour Meetings
-     * - Classes cannot be scheduled during lunch hour (12:00 PM - 1:00 PM)
      */
     private void validateNoLunchHour(CourseSectionMeeting meeting) {
         LocalTime lunchStart = LocalTime.of(12, 0);  // 12:00 PM
@@ -112,8 +106,6 @@ public class CourseSectionMeetingValidator {
     
     /**
      * VALIDATION 4: Course Hours Type Validation
-     * - Core courses must be 4-6 hours per week
-     * - Elective courses must be 2-4 hours per week
      */
     private void validateCourseHoursType(CourseSectionMeeting meeting) {
         if (meeting.getSection() == null || meeting.getSection().getCourse() == null) {
@@ -146,7 +138,6 @@ public class CourseSectionMeetingValidator {
     
     /**
      * VALIDATION 5: Hours Validation (CRITICAL)
-     * Total hours of all meetings in this section <= course.hoursPerWeek
      */
     private void validateHours(CourseSectionMeeting meeting) {
         if (meeting.getSection() == null) {

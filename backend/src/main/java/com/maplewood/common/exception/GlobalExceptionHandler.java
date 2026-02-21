@@ -61,6 +61,7 @@ public class GlobalExceptionHandler {
             .error(ex.getErrorType())
             .message(ex.getMessage())
             .details(ex.getDetails())
+            .alternatives(ex.getAlternatives())
             .timestamp(java.time.LocalDateTime.now())
             .path(request.getDescription(false).replace("uri=", ""))
             .build();
@@ -92,6 +93,7 @@ public class GlobalExceptionHandler {
             .error("Schedule Conflict")
             .message(ex.getMessage())
             .details(ex.getConflictDetails())
+            .alternatives(ex.getAlternatives())
             .timestamp(java.time.LocalDateTime.now())
             .path(request.getDescription(false).replace("uri=", ""))
             .build();

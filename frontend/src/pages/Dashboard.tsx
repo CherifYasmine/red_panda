@@ -69,7 +69,21 @@ export function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Grade Level */}
+        <StatsCard
+          icon={
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          }
+          title="Grade Level"
+          value={student?.gradeLevel || '-'}
+          subtitle="Current"
+          valueColor="text-purple-600"
+          iconGradient="from-purple-100 to-pink-100"
+        />
+
         {/* Enrolled Courses */}
         <StatsCard
           icon={

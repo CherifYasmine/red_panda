@@ -42,6 +42,12 @@ public class ErrorResponse {
     private Object details;
     
     /**
+     * Suggested alternatives to fix the error (optional)
+     * Can include alternative courses, time slots, prerequisites, etc.
+     */
+    private Object alternatives;
+    
+    /**
      * Timestamp when error occurred
      */
     private LocalDateTime timestamp;

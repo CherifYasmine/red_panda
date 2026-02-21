@@ -2,12 +2,12 @@ package com.maplewood.common.exception;
 
 /**
  * Base exception for enrollment validation errors (400 Bad Request)
- * Extended by: PrerequisiteNotMetException, CourseLimitExceededException, etc.
  */
 public class EnrollmentValidationException extends RuntimeException {
     
     private final String errorType;
     private Object details;
+    private Object alternatives; // Optional: suggested alternatives to fix the error
     
     public EnrollmentValidationException(String errorType, String message) {
         super(message);
@@ -20,11 +20,22 @@ public class EnrollmentValidationException extends RuntimeException {
         this.details = details;
     }
     
+    public EnrollmentValidationException(String errorType, String message, Object details, Object alternatives) {
+        super(message);
+        this.errorType = errorType;
+        this.details = details;
+        this.alternatives = alternatives;
+    }
+    
     public String getErrorType() {
         return errorType;
     }
     
     public Object getDetails() {
         return details;
+    }
+    
+    public Object getAlternatives() {
+        return alternatives;
     }
 }
