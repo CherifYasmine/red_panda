@@ -190,7 +190,20 @@ public class CourseController {
     public ResponseEntity<?> getAvailableSectionsForCourse(@PathVariable Long courseId) {
         return ResponseEntity.ok(courseService.getAvailableSectionsForCourse(courseId));
     }
-    
+
+    /**
+     * Get available courses for a student for the active semester (Fall)
+     * Filters by student's grade level
+     */
+    @GetMapping("/available-for-student/{studentId}")
+    public ResponseEntity<List<CourseDTO>> getAvailableCoursesForStudent(@PathVariable Long studentId) {
+        List<CourseDTO> courses = courseService.getAvailableCoursesForStudent(studentId)
+            .stream()
+            .map(CourseMapper::toDTO)
+            .toList();
+        return ResponseEntity.ok(courses);
+    }
+
     /**
      * Delete course
      */

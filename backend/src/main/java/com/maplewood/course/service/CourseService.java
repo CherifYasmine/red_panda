@@ -20,6 +20,7 @@ import com.maplewood.course.specification.CourseSpecification;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Specialization;
 import com.maplewood.school.repository.SemesterRepository;
+import com.maplewood.student.repository.StudentRepository;
 
 /**
  * Service for Course operations
@@ -36,6 +37,9 @@ public class CourseService {
     
     @Autowired
     private SemesterRepository semesterRepository;
+
+    @Autowired
+    private StudentRepository studentRepository;
     
     /**
      * Get all courses with pagination
@@ -202,6 +206,21 @@ public class CourseService {
      */
     public List<Course> getCoursesBySemesterAndGradeLevel(Integer semesterOrder, Integer gradeLevel) {
         return courseRepository.findBySemesterAndGradeLevel(semesterOrder, gradeLevel);
+    }
+
+    /**
+     * Get available courses for a student for the active semester
+     * Filters by student's grade level and current active semester
+     */
+    public List<Course> getAvailableCoursesForStudent(Long studentId) {
+        var student = studentRepository.findById(studentId)
+            .orElseThrow(() -> new IllegalArgumentException("Student not found with ID: " + studentId));
+        
+        // Get active semester
+        var activeSemester = semesterRepository.findByIsActive(true)
+            .orElseThrow(() -> new IllegalArgumentException("No active semester found"));
+        
+        return getCoursesBySemesterAndGradeLevel(activeSemester.getOrderInYear(), student.getGradeLevel());
     }
     
     /**
