@@ -79,7 +79,7 @@ export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSel
   };
 
   return (
-    <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-4 border-2 ${THEME.colors.borders.light} max-h-200 overflow-y-auto`}>
+    <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-4 border-2 ${THEME.colors.borders.light} max-h-140 overflow-y-auto`}>
       <h3 className={`text-lg font-bold ${THEME.colors.text.primary} mb-4`}>Available Courses</h3>
 
       {/* Error Alerts */}

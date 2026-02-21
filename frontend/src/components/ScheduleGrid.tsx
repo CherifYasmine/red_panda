@@ -8,20 +8,21 @@ interface ScheduleGridProps {
 }
 
 const TIME_SLOTS = [
-  '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-  '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-  '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
+  '08:00', '09:00', '10:00', '11:00', '12:00',
+  '13:00', '14:00', '15:00', '16:00', '17:00'
 ];
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 export function ScheduleGrid({ scheduleSlots, colors, onSlotClick }: ScheduleGridProps) {
-  const getSlotsAtTime = (dayOfWeek: number, time: string): ScheduleSlot[] => {
+  const getSlotsAtTime = (dayOfWeek: number, timeStart: string): ScheduleSlot[] => {
     return scheduleSlots.filter((slot) => {
       const startMinutes = timeToMinutes(slot.startTime);
       const endMinutes = timeToMinutes(slot.endTime);
-      const currentMinutes = timeToMinutes(time);
-      return slot.dayOfWeek === dayOfWeek && currentMinutes >= startMinutes && currentMinutes < endMinutes;
+      const startHourMinutes = timeToMinutes(timeStart);
+      const endHourMinutes = startHourMinutes + 60; // 1 hour block
+      // Slot overlaps with this hour block
+      return slot.dayOfWeek === dayOfWeek && startMinutes < endHourMinutes && endMinutes > startHourMinutes;
     });
   };
 
@@ -34,7 +35,15 @@ export function ScheduleGrid({ scheduleSlots, colors, onSlotClick }: ScheduleGri
     const startMinutes = timeToMinutes(startTime);
     const endMinutes = timeToMinutes(endTime);
     const diffMinutes = endMinutes - startMinutes;
-    return diffMinutes / 30 + 1; // Each 30-minute slot = 1 row
+    return Math.ceil(diffMinutes / 60)+1; // Each 1-hour slot = 1 row
+  };
+
+  // Calculate vertical offset within the hour
+  const calculateTopOffset = (startTime: string, hourStart: string): number => {
+    const startMinutes = timeToMinutes(startTime);
+    const hourStartMinutes = timeToMinutes(hourStart);
+    const offsetMinutes = startMinutes - hourStartMinutes;
+    return (offsetMinutes / 60) * 48; // 48px per hour
   };
 
   const getSlotColor = (index: number): string => {
@@ -69,32 +78,41 @@ export function ScheduleGrid({ scheduleSlots, colors, onSlotClick }: ScheduleGri
               </td>
               {DAYS.map((_, dayIdx) => {
                 const dayOfWeek = dayIdx + 1;
-                const slots = getSlotsAtTime(dayOfWeek, time);
-                const slotKey = `${dayOfWeek}-${time}`;
-                const slotsToRender = slots.filter((slot) => slot.startTime === time);
+                const allSlots = getSlotsAtTime(dayOfWeek, time);
+                // Only render slots that START in this hour
+                const slots = allSlots.filter((slot) => {
+                  const slotStartMinutes = timeToMinutes(slot.startTime);
+                  const hourMinutes = timeToMinutes(time);
+                  return slotStartMinutes >= hourMinutes && slotStartMinutes < hourMinutes + 60;
+                });
 
                 return (
                   <td
-                    key={slotKey}
-                    className={`p-2 border border-slate-200 ${slots.length === 0 ? 'bg-white' : ''} h-10 align-top relative`}
+                    key={`${dayOfWeek}-${time}`}
+                    className={`p-2 border border-slate-200 ${slots.length === 0 ? 'bg-white' : ''} h-12 align-top relative`}
                   >
-                    {slotsToRender.map((slot, idx) => {
-                      const totalSlots = slotsToRender.length;
+                    {slots.map((slot, idx) => {
+                      const totalSlots = slots.length;
+                      const slotIdx = idx;
                       const slotWidth = 100 / totalSlots;
+                      const topOffset = calculateTopOffset(slot.startTime, time);
+
                       return (
                         <div
                           key={`${slot.courseCode}-${idx}`}
-                          className={`p-2 rounded text-xs cursor-pointer group hover:shadow-md transition-all absolute top-0 ${
+                          className={`p-2 rounded text-xs cursor-pointer group hover:shadow-md transition-all absolute top-0 border-2 ${
                             slot.hasConflict
-                              ? 'bg-red-500/50 border-red-500 text-red-900 border-2'
+                              ? 'bg-red-500 border-red-600 text-red-1500'
                               : `${getSlotColor(scheduleSlots.indexOf(slot))} ${
-                                  slot.isOverlay ? 'border-dashed opacity-75' : 'border-2'
+                                  'border-solid'
                                 }`
                           }`}
                           style={{
-                            height: `${calculateRowSpan(slot.startTime, slot.endTime) * 40}px`,
+                            height: `${calculateRowSpan(slot.startTime, slot.endTime) * 48}px`,
                             width: `${slotWidth}%`,
-                            left: `${slotWidth * idx}%`,
+                            left: `${slotWidth * slotIdx}%`,
+                            top: `${topOffset}px`,
+                            opacity: slot.hasConflict ? 0.5 : (slot.isOverlay ? 0.75 : 1),
                             zIndex: slot.hasConflict ? 15 : (slot.isOverlay ? 5 : 10),
                           }}
                           onClick={() => onSlotClick?.(slot)}
