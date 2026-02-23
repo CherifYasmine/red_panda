@@ -138,11 +138,6 @@ npm run dev
 # Frontend will be available at http://localhost:5173
 ```
 
-**Development Server Features:**
-- Hot Module Replacement (HMR) for instant updates
-- Fast TypeScript checking
-- Detailed error messages
-
 ---
 
 ## 🔐 Login & Test Accounts
