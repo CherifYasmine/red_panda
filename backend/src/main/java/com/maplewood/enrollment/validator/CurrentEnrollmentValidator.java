@@ -1,25 +1,20 @@
 package com.maplewood.enrollment.validator;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.maplewood.common.enums.CourseHistoryStatus;
-import com.maplewood.common.exception.DuplicateResourceException;
-import com.maplewood.common.exception.EnrollmentValidationException;
-import com.maplewood.common.exception.ScheduleConflictException;
-import com.maplewood.course.entity.Course;
-import com.maplewood.course.entity.CourseSection;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
-import com.maplewood.student.entity.Student;
-import com.maplewood.student.repository.StudentCourseHistoryRepository;
+import com.maplewood.enrollment.validator.enrollment.AlreadyCompletedValidator;
+import com.maplewood.enrollment.validator.enrollment.CapacityValidator;
+import com.maplewood.enrollment.validator.enrollment.CourseLimitValidator;
+import com.maplewood.enrollment.validator.enrollment.DuplicateCourseValidator;
+import com.maplewood.enrollment.validator.enrollment.GradeLevelValidator;
+import com.maplewood.enrollment.validator.enrollment.PrerequisiteValidator;
+import com.maplewood.enrollment.validator.enrollment.ScheduleConflictEnrollmentValidator;
 
 /**
- * Validator for CurrentEnrollment
- * Enforces all business rules for student course enrollment
+ * Orchestrator for CurrentEnrollment validations
+ * Delegates to specialized validators for each validation rule
  * 
  * Validations (in order):
  * 1. Duplicate Course - Student not already enrolled in this course (any section) this semester
@@ -34,273 +29,36 @@ import com.maplewood.student.repository.StudentCourseHistoryRepository;
 public class CurrentEnrollmentValidator {
     
     @Autowired
-    private CurrentEnrollmentRepository enrollmentRepository;
+    private DuplicateCourseValidator duplicateCourseValidator;
     
     @Autowired
-    private StudentCourseHistoryRepository courseHistoryRepository;
+    private AlreadyCompletedValidator alreadyCompletedValidator;
     
     @Autowired
-    private CourseSectionMeetingRepository meetingRepository;
+    private GradeLevelValidator gradeLevelValidator;
+    
+    @Autowired
+    private CapacityValidator capacityValidator;
+    
+    @Autowired
+    private CourseLimitValidator courseLimitValidator;
+    
+    @Autowired
+    private PrerequisiteValidator prerequisiteValidator;
+    
+    @Autowired
+    private ScheduleConflictEnrollmentValidator scheduleConflictEnrollmentValidator;
     
     /**
-     * Main validation method - runs all validations
+     * Main validation method - delegates to all specialized validators
      */
     public void validate(CurrentEnrollment enrollment) {
-        validateNoDuplicateCourse(enrollment);
-        validateNotAlreadyCompleted(enrollment);
-        validateGradeLevel(enrollment);
-        validateCapacity(enrollment);
-        validateCourseLimit(enrollment);
-        validatePrerequisites(enrollment);
-        validateScheduleConflicts(enrollment);
-    }
-    
-    /**
-     * VALIDATION 1: Duplicate Course Prevention
-     * Ensures student not already enrolled in this course (any section) in this semester
-     */
-    private void validateNoDuplicateCourse(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getStudent().getId() == null) {
-            throw new IllegalArgumentException("Student must be provided");
-        }
-        if (enrollment.getCourseSection() == null || enrollment.getCourseSection().getId() == null) {
-            throw new IllegalArgumentException("Section must be provided");
-        }
-        if (enrollment.getCourseSection().getCourse() == null) {
-            throw new IllegalArgumentException("Section must have course defined");
-        }
-        if (enrollment.getCourseSection().getSemester() == null) {
-            throw new IllegalArgumentException("Section must have semester defined");
-        }
-        
-        long courseCount = enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-            enrollment.getStudent().getId(),
-            enrollment.getCourseSection().getCourse().getId(),
-            enrollment.getCourseSection().getSemester().getId()
-        );
-        
-        if (courseCount > 0) {
-            throw new DuplicateResourceException(
-                "Already enrolled in " + enrollment.getCourseSection().getCourse().getName() + 
-                 " in this semester. Cannot take the same course twice per semester."
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 2: Already Completed
-     * Ensures student cannot retake a course they've already passed in history
-     */
-    private void validateNotAlreadyCompleted(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Student and section must be provided");
-        }
-        
-        if (enrollment.getCourseSection().getCourse() == null) {
-            throw new IllegalArgumentException("Section must have course defined");
-        }
-        
-        // Check if student has already passed this course
-        boolean alreadyPassed = courseHistoryRepository.existsByStudentAndCourseAndStatus(
-            enrollment.getStudent(),
-            enrollment.getCourseSection().getCourse(),
-            CourseHistoryStatus.PASSED
-        );
-        
-        if (alreadyPassed) {
-            throw new EnrollmentValidationException(
-                "COURSE_ALREADY_COMPLETED",
-                "Already completed " + enrollment.getCourseSection().getCourse().getName() + 
-                ". Cannot retake a course that has been passed."
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 3: Grade Level
-     * Ensures student's grade level is within course's min/max range
-     */
-    private void validateGradeLevel(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Student and section must be provided");
-        }
-        
-        if (enrollment.getCourseSection().getCourse() == null) {
-            throw new IllegalArgumentException("Section must have course defined");
-        }
-        
-        Integer studentGradeLevel = enrollment.getStudent().getGradeLevel();
-        Integer courseGradeMin = enrollment.getCourseSection().getCourse().getGradeLevelMin();
-        Integer courseGradeMax = enrollment.getCourseSection().getCourse().getGradeLevelMax();
-        
-        if (studentGradeLevel == null) {
-            throw new IllegalArgumentException("Student must have grade level defined");
-        }
-        if (courseGradeMin == null || courseGradeMax == null) {
-            throw new IllegalArgumentException("Course must have grade level range defined");
-        }
-        
-        if (studentGradeLevel < courseGradeMin || studentGradeLevel > courseGradeMax) {
-            String gradeRequirement;
-            if (courseGradeMin.equals(courseGradeMax)) {
-                gradeRequirement = "grade " + courseGradeMin;
-            } else {
-                gradeRequirement = "between grades " + courseGradeMin + " and " + courseGradeMax;
-            }
-            
-            throw new EnrollmentValidationException(
-                "GRADE_LEVEL_NOT_ALLOWED",
-                "Grade level " + studentGradeLevel + 
-                " is not allowed for this course (requires " + gradeRequirement + ")"
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 4: Capacity Check
-     * Ensures section hasn't reached maximum capacity
-     * Checks the enrollmentCount field on section (maintained by service)
-     */
-    private void validateCapacity(CurrentEnrollment enrollment) {
-        if (enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Section must be provided");
-        }
-        
-        CourseSection section = enrollment.getCourseSection();
-        Integer capacity = section.getCapacity();
-        Integer enrollmentCount = section.getEnrollmentCount();
-        
-        if (capacity == null) {
-            throw new IllegalArgumentException("Section must have capacity defined");
-        }
-        if (enrollmentCount == null) {
-            throw new IllegalArgumentException("Section must have enrollmentCount defined");
-        }
-        
-        if (enrollmentCount >= capacity) {
-            throw new ScheduleConflictException(
-                "Section has reached maximum capacity (" + capacity + " students)"
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 5: Course Limit
-     * Student cannot exceed 5 courses per semester
-     */
-    private void validateCourseLimit(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Student and section must be provided");
-        }
-        
-        if (enrollment.getCourseSection().getSemester() == null) {
-            throw new IllegalArgumentException("Section must have semester defined");
-        }
-        
-        long currentCourses = enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-            enrollment.getStudent().getId(),
-            enrollment.getCourseSection().getSemester().getId()
-        );
-        
-        if (currentCourses >= 5) {
-            throw new ScheduleConflictException(
-                "Cannot enroll in more than 5 courses per semester (already enrolled in 5)"
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 6: Prerequisites
-     * Student must have passed all prerequisite courses
-     * Prerequisite must be from same or earlier semester (semester_order logic)
-     */
-    private void validatePrerequisites(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Student and section must be provided");
-        }
-        
-        Course course = enrollment.getCourseSection().getCourse();
-        if (course == null) {
-            throw new IllegalArgumentException("Section must have course defined");
-        }
-        
-        // If no prerequisite, validation passes
-        if (course.getPrerequisite() == null) {
-            return;
-        }
-        
-        // Check if student has passed the prerequisite
-        boolean hasPrerequisite = courseHistoryRepository.existsByStudentAndCourseAndStatus(
-            enrollment.getStudent(),
-            course.getPrerequisite(),
-            CourseHistoryStatus.PASSED
-        );
-        
-        if (!hasPrerequisite) {
-            throw new EnrollmentValidationException(
-                "PREREQUISITE_NOT_MET",
-                "Prerequisite not completed: " + course.getPrerequisite().getName() + " (code: " + course.getPrerequisite().getCode() + ")"
-            );
-        }
-        
-        // BONUS: Validate semester ordering
-        // Prerequisite course's semester_order should be <= current course's semester_order
-        // This prevents illogical scheduling like Fall course requiring Spring prerequisite
-        if (course.getSemesterOrder() != null && course.getPrerequisite().getSemesterOrder() != null) {
-            if (course.getPrerequisite().getSemesterOrder() > course.getSemesterOrder()) {
-                throw new IllegalArgumentException(
-                    "Prerequisite " + course.getPrerequisite().getName() + " is scheduled for later semester. " +
-                    "Prerequisites must be from same or earlier semester."
-                );
-            }
-        }
-    }
-    
-    /**
-     * VALIDATION 7: Schedule Conflicts
-     * Student's new meeting times cannot overlap with already enrolled courses
-     */
-    private void validateScheduleConflicts(CurrentEnrollment enrollment) {
-        if (enrollment.getStudent() == null || enrollment.getCourseSection() == null) {
-            throw new IllegalArgumentException("Student and section must be provided");
-        }
-        
-        Student student = enrollment.getStudent();
-        CourseSection newSection = enrollment.getCourseSection();
-        
-        // Get all meetings for the new section
-        List<com.maplewood.course.entity.CourseSectionMeeting> newMeetings = 
-            meetingRepository.findBySection(newSection);
-        
-        if (newMeetings.isEmpty()) {
-            return;  // No meetings scheduled yet
-        }
-        
-        // Get all student's current enrollments in the same semester
-        List<CurrentEnrollment> currentEnrollments = enrollmentRepository.findByStudent(student);
-        
-        // Filter to same semester
-        Long semesterId = newSection.getSemester().getId();
-        currentEnrollments = currentEnrollments.stream()
-            .filter(e -> e.getCourseSection().getSemester().getId().equals(semesterId))
-            .toList();
-        
-        // Check each existing enrollment for conflicts
-        for (CurrentEnrollment existing : currentEnrollments) {
-            List<com.maplewood.course.entity.CourseSectionMeeting> existingMeetings = 
-                meetingRepository.findBySection(existing.getCourseSection());
-            
-            // Check for any overlaps
-            for (com.maplewood.course.entity.CourseSectionMeeting newMeeting : newMeetings) {
-                for (com.maplewood.course.entity.CourseSectionMeeting existingMeeting : existingMeetings) {
-                    if (newMeeting.overlaps(existingMeeting)) {
-                        throw new ScheduleConflictException(
-                            "Schedule conflict: Course " + existing.getCourseSection().getCourse().getName() + 
-                            " meets at the same time"
-                        );
-                    }
-                }
-            }
-        }
+        duplicateCourseValidator.validate(enrollment);
+        alreadyCompletedValidator.validate(enrollment);
+        gradeLevelValidator.validate(enrollment);
+        capacityValidator.validate(enrollment);
+        courseLimitValidator.validate(enrollment);
+        prerequisiteValidator.validate(enrollment);
+        scheduleConflictEnrollmentValidator.validate(enrollment);
     }
 }

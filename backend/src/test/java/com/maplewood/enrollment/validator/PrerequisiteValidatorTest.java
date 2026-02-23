@@ -1,12 +1,10 @@
 package com.maplewood.enrollment.validator;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,9 +20,8 @@ import com.maplewood.common.enums.SemesterName;
 import com.maplewood.common.exception.EnrollmentValidationException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
+import com.maplewood.enrollment.validator.enrollment.PrerequisiteValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
@@ -32,23 +29,18 @@ import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentCourseHistoryRepository;
 
 /**
- * Unit tests for prerequisite validation in CurrentEnrollmentValidator
+ * Unit tests for PrerequisiteValidator
+ * Ensures student must have passed all prerequisite courses
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Prerequisite Validation Tests")
 class PrerequisiteValidatorTest {
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CurrentEnrollmentRepository enrollmentRepository;
-
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @Mock
     private StudentCourseHistoryRepository courseHistoryRepository;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CourseSectionMeetingRepository meetingRepository;
-
     @InjectMocks
-    private CurrentEnrollmentValidator validator;
+    private PrerequisiteValidator validator;
 
     private Student student;
     private Course course;
@@ -123,21 +115,8 @@ class PrerequisiteValidatorTest {
 
     @Test
     @DisplayName("Should throw EnrollmentValidationException when prerequisite not met")
-    void validatePrerequisites_ShouldThrowException_WhenPrerequisiteNotMet() {
+    void validate_ShouldThrowException_WhenPrerequisiteNotMet() {
         // Arrange: Course requires prerequisite, but student hasn't passed it
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        // FAILING: Student has NOT passed the prerequisite
         when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
                 student, prerequisite, CourseHistoryStatus.PASSED))
             .thenReturn(false);
@@ -147,35 +126,16 @@ class PrerequisiteValidatorTest {
             validator.validate(enrollment);
         });
         
-        assertTrue(ex.getMessage().contains("Prerequisite"));
         assertEquals("PREREQUISITE_NOT_MET", ex.getErrorType());
     }
 
     @Test
     @DisplayName("Should pass validation when prerequisite is met")
-    void validatePrerequisites_ShouldPass_WhenPrerequisiteMet() {
+    void validate_ShouldPass_WhenPrerequisiteMet() {
         // Arrange: Student has passed the prerequisite
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
         when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
                 student, prerequisite, CourseHistoryStatus.PASSED))
-            .thenReturn(true);  // PASSING: Student has passed prerequisite
-        
-        when(enrollmentRepository.findByStudent(student))
-            .thenReturn(List.of());
-        
-        when(meetingRepository.findBySection(section))
-            .thenReturn(List.of());
+            .thenReturn(true);
 
         // Act & Assert
         assertDoesNotThrow(() -> validator.validate(enrollment));
@@ -183,27 +143,9 @@ class PrerequisiteValidatorTest {
 
     @Test
     @DisplayName("Should pass validation when course has no prerequisite")
-    void validatePrerequisites_ShouldPass_WhenNoCoursePrerequisite() {
+    void validate_ShouldPass_WhenNoCoursePrerequisite() {
         // Arrange: Course has no prerequisite
         course.setPrerequisite(null);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(enrollmentRepository.findByStudent(student))
-            .thenReturn(List.of());
-        
-        when(meetingRepository.findBySection(section))
-            .thenReturn(List.of());
 
         // Act & Assert
         assertDoesNotThrow(() -> validator.validate(enrollment));

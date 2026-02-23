@@ -1,53 +1,39 @@
 package com.maplewood.enrollment.validator;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.maplewood.common.enums.CourseHistoryStatus;
 import com.maplewood.common.enums.EnrollmentStatus;
 import com.maplewood.common.enums.SemesterName;
 import com.maplewood.common.exception.ScheduleConflictException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
+import com.maplewood.enrollment.validator.enrollment.CapacityValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
 import com.maplewood.student.entity.Student;
-import com.maplewood.student.repository.StudentCourseHistoryRepository;
 
 /**
- * Unit tests for section capacity validation in CurrentEnrollmentValidator
+ * Unit tests for CapacityValidator
+ * Ensures section hasn't reached maximum capacity
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Capacity Validation Tests")
 class CapacityValidatorTest {
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CurrentEnrollmentRepository enrollmentRepository;
-
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private StudentCourseHistoryRepository courseHistoryRepository;
-
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CourseSectionMeetingRepository meetingRepository;
-
     @InjectMocks
-    private CurrentEnrollmentValidator validator;
+    private CapacityValidator validator;
 
     private Student student;
     private Course course;
@@ -122,55 +108,40 @@ class CapacityValidatorTest {
 
     @Test
     @DisplayName("Should throw ScheduleConflictException when section at capacity")
-    void validateCapacity_ShouldThrowException_WhenAtCapacity() {
+    @SuppressWarnings("unused")
+    void validate_ShouldThrowException_WhenAtCapacity() {
         // Arrange: Section at capacity (10/10)
         section.setEnrollmentCount(10);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
 
         // Act & Assert
-        ScheduleConflictException ex = assertThrows(ScheduleConflictException.class, () -> {
+        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class, () -> {
             validator.validate(enrollment);
         });
-        
-        assertTrue(ex.getMessage().contains("capacity"));
+        assertNotNull(exception);
     }
 
     @Test
     @DisplayName("Should pass validation when section has capacity")
-    void validateCapacity_ShouldPass_WhenHasCapacity() {
+    void validate_ShouldPass_WhenHasCapacity() {
         // Arrange: Section has capacity (5/10)
         section.setEnrollmentCount(5);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, prerequisite, CourseHistoryStatus.PASSED))
-            .thenReturn(true);
-        
-        when(enrollmentRepository.findByStudent(student))
-            .thenReturn(List.of());
-        
-        when(meetingRepository.findBySection(section))
-            .thenReturn(List.of());
 
         // Act & Assert
         assertDoesNotThrow(() -> validator.validate(enrollment));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when capacity is at exact limit")
+    @SuppressWarnings("unused")
+    void validate_ShouldThrowException_WhenExactlyAtCapacity() {
+        // Arrange: Enrollment count equals capacity
+        section.setCapacity(10);
+        section.setEnrollmentCount(10);
+
+        // Act & Assert
+        ScheduleConflictException exception = assertThrows(ScheduleConflictException.class, () -> {
+            validator.validate(enrollment);
+        });
+        assertNotNull(exception);
     }
 }

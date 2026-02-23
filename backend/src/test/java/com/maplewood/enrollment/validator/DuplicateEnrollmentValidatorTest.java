@@ -1,7 +1,6 @@
 package com.maplewood.enrollment.validator;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,39 +14,32 @@ import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.maplewood.common.enums.CourseHistoryStatus;
 import com.maplewood.common.enums.EnrollmentStatus;
 import com.maplewood.common.enums.SemesterName;
 import com.maplewood.common.exception.DuplicateResourceException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
 import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
+import com.maplewood.enrollment.validator.enrollment.DuplicateCourseValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
 import com.maplewood.student.entity.Student;
-import com.maplewood.student.repository.StudentCourseHistoryRepository;
 
 /**
- * Unit tests for duplicate course enrollment validation in CurrentEnrollmentValidator
+ * Unit tests for DuplicateCourseValidator
+ * Ensures student not already enrolled in this course (any section) in this semester
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Duplicate Enrollment Validation Tests")
+@DisplayName("Duplicate Course Validation Tests")
 class DuplicateEnrollmentValidatorTest {
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @Mock
     private CurrentEnrollmentRepository enrollmentRepository;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private StudentCourseHistoryRepository courseHistoryRepository;
-
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CourseSectionMeetingRepository meetingRepository;
-
     @InjectMocks
-    private CurrentEnrollmentValidator validator;
+    private DuplicateCourseValidator validator;
 
     private Student student;
     private Course course;
@@ -122,7 +114,7 @@ class DuplicateEnrollmentValidatorTest {
 
     @Test
     @DisplayName("Should throw DuplicateResourceException when student already enrolled")
-    void validateNoDuplicateCourse_ShouldThrowException_WhenAlreadyEnrolled() {
+    void validate_ShouldThrowException_WhenAlreadyEnrolled() {
         // Arrange: Student already enrolled in this course this semester
         when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
                 student.getId(), course.getId(), semester.getId()))
@@ -138,29 +130,11 @@ class DuplicateEnrollmentValidatorTest {
 
     @Test
     @DisplayName("Should pass validation when student not enrolled in course")
-    void validateNoDuplicateCourse_ShouldPass_WhenNotDuplicate() {
+    void validate_ShouldPass_WhenNotDuplicate() {
         // Arrange: Student not enrolled
         when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
                 student.getId(), course.getId(), semester.getId()))
             .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, course, CourseHistoryStatus.PASSED))
-            .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, prerequisite, CourseHistoryStatus.PASSED))
-            .thenReturn(true);
-        
-        when(enrollmentRepository.findByStudent(student))
-            .thenReturn(List.of());
-        
-        when(meetingRepository.findBySection(section))
-            .thenReturn(List.of());
 
         // Act & Assert - should not throw
         assertDoesNotThrow(() -> validator.validate(enrollment));

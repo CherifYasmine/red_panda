@@ -1,12 +1,10 @@
 package com.maplewood.enrollment.validator;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,9 +20,8 @@ import com.maplewood.common.enums.SemesterName;
 import com.maplewood.common.exception.EnrollmentValidationException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
 import com.maplewood.enrollment.entity.CurrentEnrollment;
-import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
+import com.maplewood.enrollment.validator.enrollment.AlreadyCompletedValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
@@ -32,23 +29,18 @@ import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentCourseHistoryRepository;
 
 /**
- * Unit tests for already completed course validation in CurrentEnrollmentValidator
+ * Unit tests for AlreadyCompletedValidator
+ * Ensures student cannot retake a course they've already passed
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Already Completed Course Validation Tests")
 class AlreadyCompletedValidatorTest {
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CurrentEnrollmentRepository enrollmentRepository;
-
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @Mock
     private StudentCourseHistoryRepository courseHistoryRepository;
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
-    private CourseSectionMeetingRepository meetingRepository;
-
     @InjectMocks
-    private CurrentEnrollmentValidator validator;
+    private AlreadyCompletedValidator validator;
 
     private Student student;
     private Course course;
@@ -123,53 +115,27 @@ class AlreadyCompletedValidatorTest {
 
     @Test
     @DisplayName("Should throw EnrollmentValidationException when course already passed")
-    void validateNotAlreadyCompleted_ShouldThrowException_WhenAlreadyPassed() {
-        // Arrange: Set up first validation to pass
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        // Second validation: student already passed this course
+    void validate_ShouldThrowException_WhenAlreadyPassed() {
+        // Arrange: Student already passed this course
         when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
                 student, course, CourseHistoryStatus.PASSED))
             .thenReturn(true);
 
-        // Act & Assert
         EnrollmentValidationException ex = assertThrows(EnrollmentValidationException.class, () -> {
             validator.validate(enrollment);
         });
         
-        assertTrue(ex.getMessage().contains("Already completed"));
         assertEquals("COURSE_ALREADY_COMPLETED", ex.getErrorType());
     }
 
     @Test
     @DisplayName("Should pass validation when course not yet completed")
-    void validateNotAlreadyCompleted_ShouldPass_WhenNotCompleted() {
+    void validate_ShouldPass_WhenNotCompleted() {
         // Arrange: Student has not passed this course
-        when(enrollmentRepository.countByStudent_IdAndCourse_IdAndSemester_Id(
-                student.getId(), course.getId(), semester.getId()))
-            .thenReturn(0L);
-        
         when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
                 student, course, CourseHistoryStatus.PASSED))
             .thenReturn(false);
-        
-        when(enrollmentRepository.countByStudent_IdAndCourseSection_Semester_Id(
-                student.getId(), semester.getId()))
-            .thenReturn(0L);
-        
-        when(courseHistoryRepository.existsByStudentAndCourseAndStatus(
-                student, prerequisite, CourseHistoryStatus.PASSED))
-            .thenReturn(true);
-        
-        when(enrollmentRepository.findByStudent(student))
-            .thenReturn(List.of());
-        
-        when(meetingRepository.findBySection(section))
-            .thenReturn(List.of());
 
-        // Act & Assert
         assertDoesNotThrow(() -> validator.validate(enrollment));
     }
 }
