@@ -22,13 +22,12 @@ import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.entity.CourseSectionMeeting;
 import com.maplewood.course.repository.CourseSectionMeetingRepository;
-import com.maplewood.course.validator.CourseSectionMeetingValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Teacher;
 
 /**
- * Unit tests for schedule conflict validation in CourseSectionMeetingValidator
- * Tests that no teacher or classroom double-booking occurs
+ * Unit tests for schedule conflict validation
+ * Tests that teacher and classroom conflicts are detected
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Meeting Schedule Conflict Validation Tests")
@@ -38,7 +37,7 @@ class ScheduleConflictMeetingValidatorTest {
     private CourseSectionMeetingRepository repository;
 
     @InjectMocks
-    private CourseSectionMeetingValidator validator;
+    private ScheduleConflictMeetingValidator validator;
 
     private CourseSectionMeeting meeting;
     private CourseSection section;
@@ -75,18 +74,6 @@ class ScheduleConflictMeetingValidatorTest {
         meeting.setDayOfWeekEnum(DayOfWeek.MONDAY);
         meeting.setStartTime(LocalTime.of(9, 0));
         meeting.setEndTime(LocalTime.of(10, 0));
-
-        setupMocks();
-    }
-
-    private void setupMocks() {
-        when(repository.findBySection_IdAndDayOfWeekAndStartTime(
-                section.getId(), meeting.getDayOfWeek(), meeting.getStartTime()))
-            .thenReturn(List.of());
-        when(repository.findBySection_Teacher(teacher)).thenReturn(List.of());
-        when(repository.findBySection_Classroom(classroom)).thenReturn(List.of());
-        when(repository.findBySection_TeacherAndDayOfWeek(teacher, meeting.getDayOfWeek()))
-            .thenReturn(List.of());
     }
 
     @Test

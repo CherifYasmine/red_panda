@@ -20,10 +20,9 @@ import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.entity.CourseSectionMeeting;
 import com.maplewood.course.repository.CourseSectionMeetingRepository;
-import com.maplewood.course.validator.CourseSectionMeetingValidator;
 
 /**
- * Unit tests for uniqueness validation in CourseSectionMeetingValidator
+ * Unit tests for uniqueness validation
  * Tests that no duplicate meetings exist for same section/day/time
  */
 @ExtendWith(MockitoExtension.class)
@@ -34,7 +33,7 @@ class UniquenessValidatorTest {
     private CourseSectionMeetingRepository repository;
 
     @InjectMocks
-    private CourseSectionMeetingValidator validator;
+    private UniquenessValidator validator;
 
     private CourseSectionMeeting meeting;
     private CourseSection section;
@@ -43,6 +42,7 @@ class UniquenessValidatorTest {
     @SuppressWarnings("unused")
     @BeforeEach
     void setUp() {
+        
         course = new Course();
         course.setId(101L);
         course.setCode("CS101");
@@ -66,13 +66,6 @@ class UniquenessValidatorTest {
         // Arrange: No existing meetings for this section/day/time
         when(repository.findBySection_IdAndDayOfWeekAndStartTime(
                 section.getId(), meeting.getDayOfWeek(), meeting.getStartTime()))
-            .thenReturn(List.of());
-
-        // Also mock other validations
-        when(repository.findBySection(section)).thenReturn(List.of());
-        when(repository.findBySection_Teacher(null)).thenReturn(List.of());
-        when(repository.findBySection_Classroom(null)).thenReturn(List.of());
-        when(repository.findBySection_TeacherAndDayOfWeek(null, meeting.getDayOfWeek()))
             .thenReturn(List.of());
 
         // Act & Assert
@@ -116,13 +109,6 @@ class UniquenessValidatorTest {
         when(repository.findBySection_IdAndDayOfWeekAndStartTime(
                 section.getId(), meeting.getDayOfWeek(), meeting.getStartTime()))
             .thenReturn(List.of(existingCopy));
-
-        // Mock other validations
-        when(repository.findBySection(section)).thenReturn(List.of());
-        when(repository.findBySection_Teacher(null)).thenReturn(List.of());
-        when(repository.findBySection_Classroom(null)).thenReturn(List.of());
-        when(repository.findBySection_TeacherAndDayOfWeek(null, meeting.getDayOfWeek()))
-            .thenReturn(List.of());
 
         // Act & Assert - should not throw (self is filtered out)
         assertDoesNotThrow(() -> validator.validate(meeting));

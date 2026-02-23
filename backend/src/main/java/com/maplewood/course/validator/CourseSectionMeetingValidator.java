@@ -1,22 +1,20 @@
 package com.maplewood.course.validator;
 
-import java.time.Duration;
-import java.time.LocalTime;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.maplewood.common.enums.CourseType;
-import com.maplewood.common.exception.ScheduleConflictException;
-import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.entity.CourseSectionMeeting;
-import com.maplewood.course.repository.CourseSectionMeetingRepository;
-import com.maplewood.school.entity.Teacher;
+import com.maplewood.course.validator.courseSectionMeeting.CourseHoursTypeValidator;
+import com.maplewood.course.validator.courseSectionMeeting.HoursValidationValidator;
+import com.maplewood.course.validator.courseSectionMeeting.NoLunchHourValidator;
+import com.maplewood.course.validator.courseSectionMeeting.ScheduleConflictMeetingValidator;
+import com.maplewood.course.validator.courseSectionMeeting.TeacherDailyHoursValidator;
+import com.maplewood.course.validator.courseSectionMeeting.TimeWindowValidator;
+import com.maplewood.course.validator.courseSectionMeeting.UniquenessValidator;
 
 /**
- * Validator for CourseSectionMeeting
- * Enforces all business rules for meeting creation/update
+ * Orchestrator for CourseSectionMeeting validations
+ * Delegates to specialized validators for each validation rule
  * 
  * Validations (in order):
  * 1. Uniqueness - No duplicate meetings for same section/day/time
@@ -31,255 +29,36 @@ import com.maplewood.school.entity.Teacher;
 public class CourseSectionMeetingValidator {
     
     @Autowired
-    private CourseSectionMeetingRepository repository;
+    private UniquenessValidator uniquenessValidator;
+    
+    @Autowired
+    private TimeWindowValidator timeWindowValidator;
+    
+    @Autowired
+    private NoLunchHourValidator noLunchHourValidator;
+    
+    @Autowired
+    private CourseHoursTypeValidator courseHoursTypeValidator;
+    
+    @Autowired
+    private HoursValidationValidator hoursValidationValidator;
+    
+    @Autowired
+    private ScheduleConflictMeetingValidator scheduleConflictMeetingValidator;
+    
+    @Autowired
+    private TeacherDailyHoursValidator teacherDailyHoursValidator;
     
     /**
-     * Main validation method - runs all validations
+     * Main validation method - delegates to all specialized validators
      */
     public void validate(CourseSectionMeeting meeting) {
-        validateUniqueness(meeting);
-        validateTimeWindow(meeting);
-        validateNoLunchHour(meeting);
-        validateCourseHoursType(meeting);
-        validateHours(meeting);
-        validateScheduleConflicts(meeting);
-        validateTeacherDailyHours(meeting);
-    }
-    
-    /**
-     * VALIDATION 1: Uniqueness Check
-     */
-    private void validateUniqueness(CourseSectionMeeting meeting) {
-        if (meeting.getSection() == null || meeting.getSection().getId() == null) {
-            throw new IllegalArgumentException("Section must be provided");
-        }
-        
-        List<CourseSectionMeeting> conflictingMeetings = repository.findBySection_IdAndDayOfWeekAndStartTime(
-            meeting.getSection().getId(),
-            meeting.getDayOfWeek(),
-            meeting.getStartTime()
-        );
-        
-        if (meeting.getId() != null) {
-            conflictingMeetings = conflictingMeetings.stream()
-                .filter(m -> !m.getId().equals(meeting.getId()))
-                .toList();
-        }
-        
-        if (!conflictingMeetings.isEmpty()) {
-            throw new IllegalArgumentException(
-                "Meeting already exists for this section on " + meeting.getDayOfWeekEnum() + 
-                " at " + meeting.getStartTime()
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 2: Time Window Validation
-     */
-    private void validateTimeWindow(CourseSectionMeeting meeting) {
-        LocalTime start = meeting.getStartTime();
-        LocalTime end = meeting.getEndTime();
-        
-        // Start < End
-        if (!start.isBefore(end)) {
-            throw new IllegalArgumentException("Start time must be before end time");
-        }
-    }
-    
-    /**
-     * VALIDATION 3: No Lunch Hour Meetings
-     */
-    private void validateNoLunchHour(CourseSectionMeeting meeting) {
-        LocalTime lunchStart = LocalTime.of(12, 0);  // 12:00 PM
-        LocalTime lunchEnd = LocalTime.of(13, 0);    // 1:00 PM
-        
-        LocalTime meetingStart = meeting.getStartTime();
-        LocalTime meetingEnd = meeting.getEndTime();
-        
-        if (meetingStart.isBefore(lunchEnd) && meetingEnd.isAfter(lunchStart)) {
-            throw new IllegalArgumentException(
-                "Classes cannot be scheduled during lunch hour (12:00 PM - 1:00 PM). " +
-                "Meeting scheduled from " + meetingStart + " to " + meetingEnd
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 4: Course Hours Type Validation
-     */
-    private void validateCourseHoursType(CourseSectionMeeting meeting) {
-        if (meeting.getSection() == null || meeting.getSection().getCourse() == null) {
-            throw new IllegalArgumentException("Section and course must be provided");
-        }
-        
-        Integer hoursPerWeek = meeting.getSection().getCourse().getHoursPerWeek();
-        CourseType courseType = meeting.getSection().getCourse().getCourseType();
-        
-        if (hoursPerWeek == null || courseType == null) {
-            return;  // Skip validation if not defined
-        }
-        
-        if (CourseType.CORE.equals(courseType)) {
-            if (hoursPerWeek < 4 || hoursPerWeek > 6) {
-                throw new IllegalArgumentException(
-                    "Core courses must be 4-6 hours per week. " +
-                    "Course is defined as " + hoursPerWeek + " hours/week"
-                );
-            }
-        } else if (CourseType.ELECTIVE.equals(courseType)) {
-            if (hoursPerWeek < 2 || hoursPerWeek > 4) {
-                throw new IllegalArgumentException(
-                    "Elective courses must be 2-4 hours per week. " +
-                    "Course is defined as " + hoursPerWeek + " hours/week"
-                );
-            }
-        }
-    }
-    
-    /**
-     * VALIDATION 5: Hours Validation (CRITICAL)
-     */
-    private void validateHours(CourseSectionMeeting meeting) {
-        if (meeting.getSection() == null) {
-            throw new IllegalArgumentException("Section must be provided");
-        }
-        
-        CourseSection section = meeting.getSection();
-        if (section.getCourse() == null) {
-            throw new IllegalArgumentException("Section must have a course");
-        }
-        
-        Integer maxHoursPerWeek = section.getCourse().getHoursPerWeek();
-        if (maxHoursPerWeek == null) {
-            throw new IllegalArgumentException("Course must have hoursPerWeek defined");
-        }
-        
-        // Get all existing meetings for this section
-        List<CourseSectionMeeting> existingMeetings = repository.findBySection(section);
-        
-        // For updates, exclude the current meeting being updated from the total
-        // (so we don't double-count it)
-        if (meeting.getId() != null) {
-            existingMeetings = existingMeetings.stream()
-                .filter(m -> !m.getId().equals(meeting.getId()))
-                .toList();
-        }
-        
-        // Calculate total minutes from existing meetings
-        long totalMinutes = existingMeetings.stream()
-            .mapToLong(m -> Duration.between(m.getStartTime(), m.getEndTime()).toMinutes())
-            .sum();
-        
-        // Add new meeting duration
-        long newMeetingMinutes = Duration.between(meeting.getStartTime(), meeting.getEndTime()).toMinutes();
-        long totalWithNew = totalMinutes + newMeetingMinutes;
-        
-        // Convert to hours
-        int totalHours = (int) Math.ceil(totalWithNew / 60.0);
-        
-        if (totalHours > maxHoursPerWeek) {
-            throw new IllegalArgumentException(
-                "Total meeting hours (" + totalHours + ") would exceed course requirement (" + 
-                maxHoursPerWeek + " hours/week)"
-            );
-        }
-    }
-    
-    /**
-     * VALIDATION 5: Schedule Conflicts
-     * - Teacher cannot teach 2 sections at same time
-     * - Classroom cannot have 2 sections at same time
-     */
-    private void validateScheduleConflicts(CourseSectionMeeting meeting) {
-        if (meeting.getSection() == null) {
-            throw new IllegalArgumentException("Section must be provided");
-        }
-        
-        // Check teacher conflicts
-        Teacher teacher = meeting.getSection().getTeacher();
-        if (teacher != null) {
-            List<CourseSectionMeeting> teacherMeetings = repository.findBySection_Teacher(teacher);
-            // Exclude current meeting if updating
-            if (meeting.getId() != null) {
-                teacherMeetings = teacherMeetings.stream()
-                    .filter(m -> !m.getId().equals(meeting.getId()))
-                    .toList();
-            }
-            boolean hasConflict = teacherMeetings.stream()
-                .anyMatch(m -> m.overlaps(meeting));
-            
-            if (hasConflict) {
-                throw new ScheduleConflictException(
-                    "Teacher " + teacher.getFirstName() + " " + teacher.getLastName() + 
-                    " already has a conflicting meeting at this time"
-                );
-            }
-        }
-        
-        // Check classroom conflicts
-        if (meeting.getSection().getClassroom() != null) {
-            List<CourseSectionMeeting> classroomMeetings = repository.findBySection_Classroom(
-                meeting.getSection().getClassroom()
-            );
-            // Exclude current meeting if updating
-            if (meeting.getId() != null) {
-                classroomMeetings = classroomMeetings.stream()
-                    .filter(m -> !m.getId().equals(meeting.getId()))
-                    .toList();
-            }
-            boolean hasConflict = classroomMeetings.stream()
-                .anyMatch(m -> m.overlaps(meeting));
-            
-            if (hasConflict) {
-                throw new ScheduleConflictException(
-                    "Classroom " + meeting.getSection().getClassroom().getName() + 
-                    " is already booked at this time"
-                );
-            }
-        }
-    }
-    
-    /**
-     * VALIDATION 6: Teacher Max Daily Hours
-     * Teacher cannot exceed maxDailyHours on any single day
-     */
-    private void validateTeacherDailyHours(CourseSectionMeeting meeting) {
-        Teacher teacher = meeting.getSection().getTeacher();
-        if (teacher == null || teacher.getMaxDailyHours() == null) {
-            return;  // No limit defined
-        }
-        
-        int maxDaily = teacher.getMaxDailyHours();
-        
-        // Get all meetings for this teacher on this day of week
-        List<CourseSectionMeeting> dailyMeetings = repository.findBySection_TeacherAndDayOfWeek(
-            teacher,
-            meeting.getDayOfWeek()
-        );
-        // Exclude current meeting if updating
-        if (meeting.getId() != null) {
-            dailyMeetings = dailyMeetings.stream()
-                .filter(m -> !m.getId().equals(meeting.getId()))
-                .toList();
-        }
-        
-        // Calculate total minutes from existing meetings on this day
-        long totalMinutesOnDay = dailyMeetings.stream()
-            .mapToLong(m -> Duration.between(m.getStartTime(), m.getEndTime()).toMinutes())
-            .sum();
-        
-        // Add new meeting
-        long newMeetingMinutes = Duration.between(meeting.getStartTime(), meeting.getEndTime()).toMinutes();
-        long totalWithNew = totalMinutesOnDay + newMeetingMinutes;
-        
-        int totalHoursOnDay = (int) Math.ceil(totalWithNew / 60.0);
-        
-        if (totalHoursOnDay > maxDaily) {
-            throw new ScheduleConflictException(
-                "Teacher would exceed maximum daily hours (" + totalHoursOnDay + 
-                " > " + maxDaily + ") on " + meeting.getDayOfWeekEnum()
-            );
-        }
+        uniquenessValidator.validate(meeting);
+        timeWindowValidator.validate(meeting);
+        noLunchHourValidator.validate(meeting);
+        courseHoursTypeValidator.validate(meeting);
+        hoursValidationValidator.validate(meeting);
+        scheduleConflictMeetingValidator.validate(meeting);
+        teacherDailyHoursValidator.validate(meeting);
     }
 }

@@ -22,12 +22,11 @@ import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.entity.CourseSectionMeeting;
 import com.maplewood.course.repository.CourseSectionMeetingRepository;
-import com.maplewood.course.validator.CourseSectionMeetingValidator;
 import com.maplewood.school.entity.Teacher;
 
 /**
- * Unit tests for teacher daily hours validation in CourseSectionMeetingValidator
- * Tests that teacher daily hour limits are enforced
+ * Unit tests for teacher daily hours validation
+ * Tests that teacher does not exceed maxDailyHours
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Meeting Teacher Daily Hours Validation Tests")
@@ -37,7 +36,7 @@ class TeacherDailyHoursValidatorTest {
     private CourseSectionMeetingRepository repository;
 
     @InjectMocks
-    private CourseSectionMeetingValidator validator;
+    private TeacherDailyHoursValidator validator;
 
     private CourseSectionMeeting meeting;
     private CourseSection section;
@@ -69,18 +68,6 @@ class TeacherDailyHoursValidatorTest {
         meeting.setDayOfWeekEnum(DayOfWeek.MONDAY);
         meeting.setStartTime(LocalTime.of(9, 0));
         meeting.setEndTime(LocalTime.of(10, 0));  // 1 hour
-
-        setupMocks();
-    }
-
-    private void setupMocks() {
-        when(repository.findBySection_IdAndDayOfWeekAndStartTime(
-                section.getId(), meeting.getDayOfWeek(), meeting.getStartTime()))
-            .thenReturn(List.of());
-        when(repository.findBySection_Teacher(teacher)).thenReturn(List.of());
-        when(repository.findBySection_Classroom(null)).thenReturn(List.of());
-        when(repository.findBySection_TeacherAndDayOfWeek(teacher, meeting.getDayOfWeek()))
-            .thenReturn(List.of());
     }
 
     @Test
