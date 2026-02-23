@@ -13,6 +13,7 @@ import com.maplewood.common.exception.ResourceNotFoundException;
 import com.maplewood.course.entity.Course;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.repository.CourseSectionRepository;
+import com.maplewood.course.validator.CourseSectionValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Teacher;
@@ -42,6 +43,9 @@ public class CourseSectionService {
     
     @Autowired
     private SemesterService semesterService;
+    
+    @Autowired
+    private CourseSectionValidator courseSectionValidator;
     
     /**
      * Get all course sections with pagination
@@ -153,52 +157,16 @@ public class CourseSectionService {
     public CourseSection createCourseSectionFromDTO(CreateCourseSectionDTO createDTO) {
         CourseSection courseSection = new CourseSection();
         
-        // Load and set all entities
+        // Load all entities
         Course course = courseService.getCourseById(createDTO.getCourseId());
         Teacher teacher = teacherService.getTeacherById(createDTO.getTeacherId());
         Classroom classroom = classroomService.getClassroomById(createDTO.getClassroomId());
-        Semester activeSemester = semesterService.getActiveSemester();  // Auto-load active semester
+        Semester activeSemester = semesterService.getActiveSemester();
         
-        // VALIDATION 1: Check specialization match
-        if (course.getSpecialization() == null || teacher.getSpecialization() == null) {
-            throw new IllegalArgumentException("Course and teacher must have specializations defined");
-        }
+        // Validate business rules
+        courseSectionValidator.validate(course, teacher, classroom, activeSemester);
         
-        if (!course.getSpecialization().getId().equals(teacher.getSpecialization().getId())) {
-            throw new IllegalArgumentException(
-                "Teacher " + teacher.getFirstName() + " " + teacher.getLastName() + 
-                " specializes in " + teacher.getSpecialization().getName() + 
-                " but this course is in " + course.getSpecialization().getName()
-            );
-        }
-        
-        // VALIDATION 2: Check classroom room type matches course specialization's required room type
-        if (course.getSpecialization().getRoomType() == null || classroom.getRoomType() == null) {
-            throw new IllegalArgumentException("Course specialization and classroom must have room types defined");
-        }
-        
-        if (!course.getSpecialization().getRoomType().getId().equals(classroom.getRoomType().getId())) {
-            throw new IllegalArgumentException(
-                "Classroom " + classroom.getName() + " has room type '" + classroom.getRoomType().getName() + 
-                "' but this course requires '" + course.getSpecialization().getRoomType().getName() + "' room type"
-            );
-        }
-        
-        // VALIDATION 3: Check course semester order matches active semester's order
-        if (course.getSemesterOrder() == null || activeSemester.getOrderInYear() == null) {
-            throw new IllegalArgumentException("Course and semester must have semester order defined");
-        }
-        
-        if (!course.getSemesterOrder().equals(activeSemester.getOrderInYear())) {
-            String courseSeasonName = course.getSemesterOrder() == 1 ? "Fall" : "Spring";
-            String semesterSeasonName = activeSemester.getOrderInYear() == 1 ? "Fall" : "Spring";
-            throw new IllegalArgumentException(
-                "Course " + course.getCode() + " is a " + courseSeasonName + " course (semester order: " + course.getSemesterOrder() + "), " +
-                "but the active semester is " + semesterSeasonName + " (" + activeSemester.getName() + " " + activeSemester.getYear() + 
-                ", semester order: " + activeSemester.getOrderInYear() + ")"
-            );
-        }
-        
+        // Set section properties
         courseSection.setCourse(course);
         courseSection.setTeacher(teacher);
         courseSection.setClassroom(classroom);
