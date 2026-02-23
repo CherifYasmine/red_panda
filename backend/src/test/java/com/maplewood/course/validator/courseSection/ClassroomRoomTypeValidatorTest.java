@@ -1,4 +1,4 @@
-package com.maplewood.course.validator;
+package com.maplewood.course.validator.courseSection;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.maplewood.course.entity.Course;
+import com.maplewood.course.validator.CourseSectionValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.entity.Semester;
