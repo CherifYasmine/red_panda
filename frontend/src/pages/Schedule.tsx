@@ -8,9 +8,9 @@ import type { CurrentEnrollment } from '../types/Enrollment';
 import type { CourseSectionMeeting } from '../types/CourseSection';
 import type { Course } from '../types/Course';
 import type { CourseSection } from '../types/CourseSection';
-import { ScheduleGrid } from '../components/ScheduleGrid';
-import { EnrolledCoursesLegend } from '../components/EnrolledCoursesLegend';
-import { AvailableCoursesPanel } from '../components/AvailableCoursesPanel';
+import { ScheduleGrid } from '../components/schedule/ScheduleGrid';
+import { EnrolledCoursesLegend } from '../components/schedule/EnrolledCoursesLegend';
+import { AvailableCoursesPanel } from '../components/schedule/AvailableCoursesPanel';
 
 export interface ScheduleSlot {
   enrollmentId: number;

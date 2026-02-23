@@ -1,5 +1,5 @@
-import type { ScheduleSlot } from '../pages/Schedule';
-import { THEME } from '../constants/theme';
+import type { ScheduleSlot } from '../../pages/Schedule';
+import { THEME } from '../../constants/theme';
 
 interface ScheduleGridProps {
   scheduleSlots: ScheduleSlot[];

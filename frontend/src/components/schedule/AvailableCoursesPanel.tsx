@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { THEME } from '../constants/theme';
-import { useEnrollmentStore } from '../stores/enrollmentStore';
-import client from '../api/client';
-import type { Course } from '../types/Course';
-import type { CourseSection } from '../types/CourseSection';
-import type { CurrentEnrollment } from '../types/Enrollment';
+import { THEME } from '../../constants/theme';
+import { useEnrollmentStore } from '../../stores/enrollmentStore';
+import client from '../../api/client';
+import type { Course } from '../../types/Course';
+import type { CourseSection } from '../../types/CourseSection';
+import type { CurrentEnrollment } from '../../types/Enrollment';
 
 interface AvailableCoursesPanelProps {
   studentId: number | null;

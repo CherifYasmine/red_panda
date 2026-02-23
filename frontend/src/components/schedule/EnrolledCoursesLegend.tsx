@@ -1,5 +1,5 @@
-import type { CurrentEnrollment } from '../types/Enrollment';
-import { THEME } from '../constants/theme';
+import type { CurrentEnrollment } from '../../types/Enrollment';
+import { THEME } from '../../constants/theme';
 
 interface EnrolledCoursesLegendProps {
   enrollments: CurrentEnrollment[];
