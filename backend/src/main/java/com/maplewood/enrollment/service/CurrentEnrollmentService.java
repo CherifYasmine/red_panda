@@ -4,10 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.maplewood.common.dto.CreateEnrollmentDTO;
 import com.maplewood.common.dto.EnrollmentDTO;
 import com.maplewood.common.dto.UpdateEnrollmentDTO;
+import com.maplewood.common.exception.ScheduleConflictException;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.repository.CourseSectionRepository;
 import com.maplewood.course.service.CourseSectionService;
@@ -17,6 +19,8 @@ import com.maplewood.enrollment.repository.CurrentEnrollmentRepository;
 import com.maplewood.enrollment.validator.CurrentEnrollmentValidator;
 import com.maplewood.student.entity.Student;
 import com.maplewood.student.repository.StudentRepository;
+
+import jakarta.persistence.OptimisticLockException;
 
 /**
  * Service for managing current semester enrollments
@@ -43,30 +47,60 @@ public class CurrentEnrollmentService {
     /**
      * Create a new enrollment from DTO
      * Validates prerequisites, capacity, schedule conflicts, etc.
-     * Transactional: both enrollment save and enrollmentCount increment succeed or both fail
+     * Handles concurrent enrollments with optimistic locking + retry
+     * 
+     * If 2+ students enroll simultaneously at capacity 1:
+     * - Both pass validation (both see capacity = 1, enrollment_count = 0)
+     * - First student saves → enrollment_count = 1, version = 2
+     * - Second student retries → validation fails (capacity now exceeded)
      */
-    // @Transactional
+    @Transactional
     public EnrollmentDTO createEnrollmentFromDTO(CreateEnrollmentDTO createDTO) {
-        // Load dependencies
-        Student student = studentRepository.findById(createDTO.studentId())
-            .orElseThrow(() -> new IllegalArgumentException("Student not found with ID: " + createDTO.studentId()));
+        return createEnrollmentWithRetry(createDTO, 0);
+    }
+    
+    /**
+     * Recursive retry logic for enrollment creation
+     * Max 3 retries to handle transient OptimisticLockException
+     */
+    private EnrollmentDTO createEnrollmentWithRetry(CreateEnrollmentDTO createDTO, int attempt) {
+        final int MAX_RETRIES = 3;
         
-        CourseSection section = sectionRepository.findById(createDTO.sectionId())
-            .orElseThrow(() -> new IllegalArgumentException("Section not found with ID: " + createDTO.sectionId()));
-        
-        // Create entity from DTO
-        CurrentEnrollment enrollment = CurrentEnrollmentMapper.toEntityFromCreate(createDTO, student, section);
-        
-        // Validate all business rules
-        validator.validate(enrollment);
-        
-        // Save enrollment first
-        CurrentEnrollment saved = enrollmentRepository.save(enrollment);
-        
-        // Then increment section enrollment count
-        // courseSectionService.incrementEnrollmentCount(section.getId());
-        
-        return CurrentEnrollmentMapper.toDTO(saved);
+        try {
+            // Load dependencies (fresh from DB each retry)
+            Student student = studentRepository.findById(createDTO.studentId())
+                .orElseThrow(() -> new IllegalArgumentException("Student not found with ID: " + createDTO.studentId()));
+            
+            CourseSection section = sectionRepository.findById(createDTO.sectionId())
+                .orElseThrow(() -> new IllegalArgumentException("Section not found with ID: " + createDTO.sectionId()));
+            
+            // Create entity from DTO
+            CurrentEnrollment enrollment = CurrentEnrollmentMapper.toEntityFromCreate(createDTO, student, section);
+            
+            // Validate all business rules (may fail if another student enrolled simultaneously)
+            validator.validate(enrollment);
+            
+            // Save enrollment first
+            CurrentEnrollment saved = enrollmentRepository.save(enrollment);
+            
+            // Increment section enrollment count (triggers version update for optimistic locking)
+            section.setEnrollmentCount(section.getEnrollmentCount() + 1);
+            sectionRepository.save(section);  // Version incremented here
+            
+            return CurrentEnrollmentMapper.toDTO(saved);
+            
+        } catch (OptimisticLockException e) {
+            // Version conflict: another transaction modified CourseSection
+            if (attempt < MAX_RETRIES) {
+                // Retry with fresh data
+                return createEnrollmentWithRetry(createDTO, attempt + 1);
+            } else {
+                // Max retries exceeded
+                throw new ScheduleConflictException(
+                    "Section became unavailable. Too many concurrent enrollments. Please try again."
+                );
+            }
+        }
     }
     
     /**
@@ -118,11 +152,10 @@ public class CurrentEnrollmentService {
             .toList();
     }
     
-    /* Transactional: both enrollmentCount decrement and enrollment delete succeed or both fail
+    /**
+     * Delete an enrollment (student dropping a course)
      */
-    // @Transactional
-     /* Delete an enrollment (student dropping a course)
-     */
+    @Transactional
     public void deleteEnrollment(Long enrollmentId) {
         CurrentEnrollment enrollment = enrollmentRepository.findById(enrollmentId)
             .orElseThrow(() -> new IllegalArgumentException("Enrollment not found with ID: " + enrollmentId));
@@ -131,7 +164,6 @@ public class CurrentEnrollmentService {
 
         // Decrement section enrollment count
         courseSectionService.decrementEnrollmentCount(enrollment.getCourseSection().getId());
-        
     }
     
     /**

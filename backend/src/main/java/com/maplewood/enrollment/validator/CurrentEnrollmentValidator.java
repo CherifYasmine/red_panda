@@ -159,6 +159,7 @@ public class CurrentEnrollmentValidator {
     /**
      * VALIDATION 4: Capacity Check
      * Ensures section hasn't reached maximum capacity
+     * Checks the enrollmentCount field on section (maintained by service)
      */
     private void validateCapacity(CurrentEnrollment enrollment) {
         if (enrollment.getCourseSection() == null) {
@@ -167,13 +168,16 @@ public class CurrentEnrollmentValidator {
         
         CourseSection section = enrollment.getCourseSection();
         Integer capacity = section.getCapacity();
+        Integer enrollmentCount = section.getEnrollmentCount();
+        
         if (capacity == null) {
             throw new IllegalArgumentException("Section must have capacity defined");
         }
+        if (enrollmentCount == null) {
+            throw new IllegalArgumentException("Section must have enrollmentCount defined");
+        }
         
-        long currentEnrollments = enrollmentRepository.countByCourseSection(section);
-        
-        if (currentEnrollments >= capacity) {
+        if (enrollmentCount >= capacity) {
             throw new ScheduleConflictException(
                 "Section has reached maximum capacity (" + capacity + " students)"
             );

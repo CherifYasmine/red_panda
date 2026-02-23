@@ -22,6 +22,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +38,10 @@ public class CourseSection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
     
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", nullable = false)

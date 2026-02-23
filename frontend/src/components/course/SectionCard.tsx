@@ -77,7 +77,7 @@ export function SectionCard({
                   <p className={`text-xs ${THEME.colors.text.muted} mt-2`}>{meetingStr}</p>
                 </div>
                 <div className="text-right whitespace-nowrap flex-shrink-0">
-                  <p className={`text-sm font-semibold ${THEME.colors.text.accent}`}>{section.capacity} slots</p>
+                  <p className={`text-sm font-semibold ${THEME.colors.text.accent}`}>{section.capacity - section.enrollmentCount}/{section.capacity} slots left</p>
                 </div>
               </div>
             </div>
