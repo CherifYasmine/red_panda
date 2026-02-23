@@ -141,43 +141,32 @@ npm run dev
 
 ---
 
-## 📁 Project Structure
+## 🔐 Login & Test Accounts
 
-```
+### Admin Login
+Access the admin panel to manage courses, sections, and meetings.
 
-```
+**Admin Credentials:**
+- **Password**: `admin123`
+
+**Admin Panel**: http://localhost:5173/admin
+
+### Student Test Accounts
+
+Use any of the following student accounts to explore the student experience:
+
+#### Student 1: Nancy Collins
+- **Student ID**: `1`
+- **Email**: `nancy.collins9@student.maplewood.edu`
+- **Grade Level**: 9
+- **Status**: Active
+
+#### Student 2: Jason Flores
+- **Student ID**: `101`
+- **Email**: `jason.flores10@student.maplewood.edu`
+- **Grade Level**: 10
+- **Status**: Active
+
+**Note**: Student login uses the student ID (numeric) to authenticate. Navigate to the login page and enter the student ID to access their dashboard.
 
 ---
-
-## 🔌 API Documentation
-
-### Base URL
-- **Development**: http://localhost:8080
-- **Docker**: http://backend:8080
-
-### Core Endpoints
-
-#### Courses
-- `GET /api/courses` - List all courses with filters
-- `GET /api/courses/{id}` - Get course details
-
-
-Full API documentation available at: http://localhost:8080/swagger-ui.html
-
----
-
-## 🗄️ Database
-
-### Database File
-Located at: `./maplewood_school.sqlite`
-
-### Key Tables
-- `students` - 400 students (grades 9-12)
-- `courses` - 57 courses with prerequisites
-- `teachers` - 50 teachers across 9 specializations
-- `classrooms` - 60 rooms with different types
-- `course_sections` - Sections offered (created by admin)
-- `course_section_meetings` - Meeting times for sections
-- `current_enrollments` - Active semester enrollments
-- `student_course_history` - Completed courses and grades
-- `semesters` - Semester definitions
