@@ -21,7 +21,6 @@ export function ScheduleGrid({ scheduleSlots, colors, onSlotClick }: ScheduleGri
       const endMinutes = timeToMinutes(slot.endTime);
       const startHourMinutes = timeToMinutes(timeStart);
       const endHourMinutes = startHourMinutes + 60; // 1 hour block
-      // Slot overlaps with this hour block
       return slot.dayOfWeek === dayOfWeek && startMinutes < endHourMinutes && endMinutes > startHourMinutes;
     });
   };

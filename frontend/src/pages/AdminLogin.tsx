@@ -1,41 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { Logo } from '../components/common/Logo';
-import { THEME, BUTTON_HOVER, INPUT_FOCUS, ACCENT_TEXT } from '../constants/theme';
+import { THEME, BUTTON_HOVER, INPUT_FOCUS } from '../constants/theme';
 
-export default function LoginPage() {
+export function AdminLogin() {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { loginAdmin, error, clearError } = useAuthStore();
 
-  const [studentId, setStudentId] = useState('');
-  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleAdminLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLocalError(null);
     clearError();
 
-    // Validate inputs
-    if (!studentId.trim()) {
-      setLocalError('Student ID is required');
-      return;
-    }
-    if (!email.trim()) {
-      setLocalError('Email is required');
+    if (!password.trim()) {
+      setLocalError('Password is required');
       return;
     }
 
     try {
-      await login(studentId.trim(), email.trim());
-      navigate('/dashboard');
+      setIsLoading(true);
+      loginAdmin(password.trim());
+      // Wait a moment for state to update in localStorage
+      setTimeout(() => {
+        navigate('/admin');
+        setIsLoading(false);
+      }, 100);
     } catch {
-      if (error) {
-        setLocalError(error);
-      } else {
-        setLocalError('Login failed. Please check your credentials.');
-      }
+      setLocalError(error || 'Invalid password');
+      setIsLoading(false);
     }
   };
 
@@ -54,16 +50,16 @@ export default function LoginPage() {
 
           {/* Header with icon */}
           <div className="text-center mb-8">
-            <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br ${THEME.colors.gradients.primary} ${THEME.spacing.iconRadius} mb-4 transform hover:scale-110 transition-transform ${THEME.shadows.button}`}>
-              <Logo size="lg" />
+            <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 ${THEME.spacing.iconRadius} mb-4 transform hover:scale-110 transition-transform ${THEME.shadows.button}`}>
+              <span className="text-2xl font-bold text-white">⚙️</span>
             </div>
-            <h1 className={`text-4xl font-bold ${THEME.colors.text.primary} mb-2`}>Maplewood</h1>
-            <p className={`${THEME.colors.text.accent} text-lg font-semibold`}>Course Planning</p>
-            <p className={`${THEME.colors.text.muted} text-sm mt-2`}>Welcome back! Sign in to continue</p>
+            <h1 className={`text-4xl font-bold ${THEME.colors.text.primary} mb-2`}>Admin Panel</h1>
+            <p className={`${THEME.colors.text.accent} text-lg font-semibold`}>Secure Access</p>
+            <p className={`${THEME.colors.text.muted} text-sm mt-2`}>Enter admin password to continue</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleAdminLogin} className="space-y-5">
             {/* Error Message */}
             {(localError || error) && (
               <div className={`p-4 ${THEME.colors.status.error.bg} border-l-4 ${THEME.colors.status.error.border} rounded-lg flex items-start gap-3`}>
@@ -74,33 +70,17 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Student ID Input */}
+            {/* Password Input */}
             <div>
-              <label htmlFor="student-id" className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-3`}>
-                Student ID
+              <label htmlFor="password" className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-3`}>
+                Admin Password
               </label>
               <input
-                id="student-id"
-                type="text"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder="Enter your student ID"
-                disabled={isLoading}
-                className={`w-full px-4 py-3 border-2 ${THEME.colors.borders.light} ${THEME.spacing.inputRadius} focus:outline-none ${INPUT_FOCUS} disabled:bg-gray-50 disabled:text-gray-500 transition-all text-gray-900 placeholder-gray-400 hover:border-gray-300`}
-              />
-            </div>
-
-            {/* Email Input */}
-            <div>
-              <label htmlFor="email" className={`block text-sm font-semibold ${THEME.colors.text.primary} mb-3`}>
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter admin password"
                 disabled={isLoading}
                 className={`w-full px-4 py-3 border-2 ${THEME.colors.borders.light} ${THEME.spacing.inputRadius} focus:outline-none ${INPUT_FOCUS} disabled:bg-gray-50 disabled:text-gray-500 transition-all text-gray-900 placeholder-gray-400 hover:border-gray-300`}
               />
@@ -110,7 +90,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full bg-gradient-to-r ${THEME.colors.gradients.button} ${BUTTON_HOVER} text-white font-semibold py-3 px-4 ${THEME.spacing.buttonRadius} transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${THEME.shadows.button} hover:${THEME.shadows.buttonHover} flex items-center justify-center gap-2`}
+              className={`w-full bg-gradient-to-r from-amber-500 to-orange-500 ${BUTTON_HOVER} text-white font-semibold py-3 px-4 ${THEME.spacing.buttonRadius} transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${THEME.shadows.button} hover:${THEME.shadows.buttonHover} flex items-center justify-center gap-2`}
             >
               {isLoading ? (
                 <>
@@ -118,11 +98,11 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Signing in...</span>
+                  <span>Verifying...</span>
                 </>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Access Admin Panel</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -138,10 +118,14 @@ export default function LoginPage() {
             <div className={`flex-1 h-px ${THEME.colors.borders.light}`}></div>
           </div>
 
-          {/* Help text */}
-          <p className={`text-center text-sm ${THEME.colors.text.secondary}`}>
-            Admin? <span onClick={() => navigate('/admin/login')} className={`${ACCENT_TEXT} font-semibold cursor-pointer transition-colors hover:opacity-80`}>Access Admin Panel</span>
-          </p>
+          {/* Back to login */}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            className={`w-full px-4 py-2 border-2 ${THEME.colors.borders.light} text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-all`}
+          >
+            Back to Login
+          </button>
         </div>
 
         {/* Footer info */}

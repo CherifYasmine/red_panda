@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import { THEME } from '../../constants/theme';
 import { Logo } from '../common/Logo';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { logout, student } = useAuthStore();
+  const { logout, student, isAdmin } = useAuthStore();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -14,7 +14,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     navigate('/login');
   };
 
-  const firstName = student?.firstName || 'Student';
+  const firstName = student?.firstName || (isAdmin ? 'Admin' : 'Student');
   const lastName = student?.lastName || '';
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
@@ -36,21 +36,34 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Navigation items - Center */}
           <nav className="hidden md:flex items-center gap-8">
-            <a href="/dashboard" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
-              Dashboard
-            </a>
-            <a href="/courses" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
-              Browse Courses
-            </a>
-            <a href="/schedule" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
-              My Schedule
-            </a>
-            <a href="/history" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
-              Course History
-            </a>
-            <a href="/admin" className={`text-orange-600 hover:text-orange-700 font-semibold transition-colors`}>
-              🔧 Admin
-            </a>
+            {isAdmin ? (
+              <>
+                <Link to="/admin/courses" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Manage Courses
+                </Link>
+                <Link to="/admin/quick" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Quick Actions
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Dashboard
+                </Link>
+                <Link to="/courses" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Browse Courses
+                </Link>
+                <Link to="/schedule" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  My Schedule
+                </Link>
+                <Link to="/history" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Course History
+                </Link>
+                <Link to="/admin/login" className={`text-orange-600 hover:text-orange-700 font-semibold transition-colors text-sm`}>
+                  🔧 Admin
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Profile Menu */}
@@ -73,8 +86,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className={`absolute right-0 mt-2 w-75 ${THEME.colors.backgrounds.card} rounded-xl ${THEME.shadows.card} border-2 ${THEME.colors.borders.light} overflow-hidden`}>
                 <div className="px-4 py-4 border-b-2 border-gray-100">
                   <p className={`text-sm font-semibold ${THEME.colors.text.primary}`}>{firstName} {lastName}</p>
-                  <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>{student?.email}</p>
-                  <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>ID: {student?.id}</p>
+                  {isAdmin ? (
+                    <p className={`text-xs text-orange-600 font-semibold mt-1`}>👤 Admin Access</p>
+                  ) : (
+                    <>
+                      <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>{student?.email}</p>
+                      <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>ID: {student?.id}</p>
+                    </>
+                  )}
                 </div>
                 <button
                   onClick={handleLogout}

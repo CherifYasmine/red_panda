@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import App from './App';
 import LoginPage from './pages/LoginPage';
+import { AdminLogin } from './pages/AdminLogin';
 import { Dashboard } from './pages/Dashboard';
 import { CourseCatalog } from './pages/CourseCatalog';
 import { CourseDetail } from './pages/CourseDetail';
@@ -12,6 +13,7 @@ import { AdminCourseDetail } from './components/admin/AdminCourseDetail';
 import { AdminSectionDetail } from './components/admin/AdminSectionDetail';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
 
 const routes: RouteObject[] = [
   {
@@ -76,47 +78,55 @@ const routes: RouteObject[] = [
         path: 'admin',
         children: [
           {
+            path: 'login',
+            element: <AdminLogin />,
+          },
+          {
             index: true,
-            element: <Navigate to="/admin/courses" replace />,
+            element: (
+              <ProtectedAdminRoute>
+                <Navigate to="/admin/courses" replace />
+              </ProtectedAdminRoute>
+            ),
           },
           {
             path: 'courses',
             element: (
-              <ProtectedRoute>
+              <ProtectedAdminRoute>
                 <Layout>
                   <AdminCourses />
                 </Layout>
-              </ProtectedRoute>
+              </ProtectedAdminRoute>
             ),
           },
           {
             path: 'courses/:courseId',
             element: (
-              <ProtectedRoute>
+              <ProtectedAdminRoute>
                 <Layout>
                   <AdminCourseDetail />
                 </Layout>
-              </ProtectedRoute>
+              </ProtectedAdminRoute>
             ),
           },
           {
             path: 'courses/:courseId/sections/:sectionId',
             element: (
-              <ProtectedRoute>
+              <ProtectedAdminRoute>
                 <Layout>
                   <AdminSectionDetail />
                 </Layout>
-              </ProtectedRoute>
+              </ProtectedAdminRoute>
             ),
           },
           {
             path: 'quick',
             element: (
-              <ProtectedRoute>
+              <ProtectedAdminRoute>
                 <Layout>
                   <AdminPanel />
                 </Layout>
-              </ProtectedRoute>
+              </ProtectedAdminRoute>
             ),
           },
         ],

@@ -9,11 +9,13 @@ interface AuthState {
   email: string | null;
   student: Student | null;
   isLoggedIn: boolean;
+  isAdmin: boolean;
   isLoading: boolean;
   error: string | null;
 
   // Actions
   login: (studentId: string, email: string) => Promise<void>;
+  loginAdmin: (password: string) => void;
   logout: () => void;
   clearError: () => void;
   restoreSession: () => void;
@@ -30,6 +32,7 @@ export const useAuthStore = create<AuthState>()(
       email: null,
       student: null,
       isLoggedIn: false,
+      isAdmin: false,
       isLoading: false,
       error: null,
 
@@ -92,6 +95,25 @@ export const useAuthStore = create<AuthState>()(
       },
 
       /**
+       * Login as Admin with password
+       */
+      loginAdmin: (password: string) => {
+        const ADMIN_PASSWORD = 'admin123';
+        if (password === ADMIN_PASSWORD) {
+          set({
+            isAdmin: true,
+            isLoggedIn: false, // Admin is separate from student login
+            error: null,
+          });
+        } else {
+          set({
+            error: 'Invalid admin password',
+          });
+          throw new Error('Invalid admin password');
+        }
+      },
+
+      /**
        * Logout
        */
       logout: () => {
@@ -100,6 +122,7 @@ export const useAuthStore = create<AuthState>()(
           email: null,
           student: null,
           isLoggedIn: false,
+          isAdmin: false,
           error: null,
         });
       },
@@ -143,6 +166,7 @@ export const useAuthStore = create<AuthState>()(
         email: state.email,
         student: state.student,
         isLoggedIn: state.isLoggedIn,
+        isAdmin: state.isAdmin,
       }),
     }
   )
