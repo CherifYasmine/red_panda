@@ -60,6 +60,7 @@ export function Schedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dropError, setDropError] = useState<string | null>(null);
+  const [enrollmentError, setEnrollmentError] = useState<string | null>(null);
 
   // Fetch enrolled courses
   const fetchSchedule = useCallback(async () => {
@@ -225,6 +226,18 @@ export function Schedule() {
         </div>
       )}
 
+      {enrollmentError && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded flex items-start justify-between">
+          <p className="text-red-700 font-semibold flex-1">{enrollmentError}</p>
+          <button
+            onClick={() => setEnrollmentError(null)}
+            className="ml-4 text-red-500 hover:text-red-700 font-bold"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Empty State */}
       {enrollments.length === 0 ? (
         <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-12 border-2 ${THEME.colors.borders.light} text-center`}>
@@ -249,6 +262,7 @@ export function Schedule() {
                 enrollments={enrollments}
                 onSelectSection={handleSelectSection}
                 onClearSection={handleClearOverlay}
+                onError={setEnrollmentError}
               />
             </div>
 

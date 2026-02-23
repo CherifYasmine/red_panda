@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { THEME } from '../../constants/theme';
 import { useEnrollmentStore } from '../../stores/enrollmentStore';
 import client from '../../api/client';
@@ -12,9 +12,10 @@ interface AvailableCoursesPanelProps {
   enrollments: CurrentEnrollment[];
   onSelectSection?: (course: Course, section: CourseSection) => void;
   onClearSection?: () => void;
+  onError?: (error: string) => void;
 }
 
-export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSelectSection, onClearSection }: AvailableCoursesPanelProps) {
+export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSelectSection, onClearSection, onError }: AvailableCoursesPanelProps) {
   const { enroll, enrollmentError, clearError } = useEnrollmentStore();
   const [courses, setCourses] = useState<Course[]>([]);
   const [expandedCourse, setExpandedCourse] = useState<number | null>(null);
@@ -23,6 +24,20 @@ export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSel
   const [loadingSections, setLoadingSections] = useState<Record<number, boolean>>({});
   const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
   const [enrollingId, setEnrollingId] = useState<number | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return () => {
+      clearError();
+    };
+  }, [clearError]);
+
+  useEffect(() => {
+    if (enrollmentError) {
+      onError?.(enrollmentError);
+      panelRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [enrollmentError, onError]);
 
   useEffect(() => {
     if (!studentId) return;
@@ -79,7 +94,7 @@ export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSel
   };
 
   return (
-    <div className={`${THEME.colors.backgrounds.card} rounded-2xl p-4 border-2 ${THEME.colors.borders.light} max-h-140 overflow-y-auto`}>
+    <div ref={panelRef} className={`${THEME.colors.backgrounds.card} rounded-2xl p-4 border-2 ${THEME.colors.borders.light} max-h-140 overflow-y-auto`}>
       <h3 className={`text-lg font-bold ${THEME.colors.text.primary} mb-4`}>Available Courses</h3>
 
       {/* Error Alerts */}
@@ -87,14 +102,6 @@ export function AvailableCoursesPanel({ studentId, isLoading, enrollments, onSel
         <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
           <p className="text-red-700 text-sm font-semibold">Error Loading Courses</p>
           <p className="text-red-600 text-xs mt-1">{error}</p>
-        </div>
-      )}
-
-      {/* Enrollment Error Alert */}
-      {enrollmentError && (
-        <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded">
-          <p className="text-red-700 text-sm font-semibold">Enrollment Error</p>
-          <p className="text-red-600 text-xs mt-1">{enrollmentError}</p>
         </div>
       )}
 
