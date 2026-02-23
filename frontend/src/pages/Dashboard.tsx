@@ -110,20 +110,6 @@ export function Dashboard() {
           valueColor="text-teal-600"
           iconGradient="from-emerald-100 to-teal-100"
         />
-
-        {/* Credits */}
-        <StatsCard
-          icon={
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          }
-          title="Credits"
-          value={`${metrics?.creditsEarned || '0'}/30`}
-          subtitle="This semester"
-          valueColor="text-orange-600"
-          iconGradient="from-orange-100 to-amber-100"
-        />
       </div>
 
       {/* Credits Progress Section */}
@@ -171,7 +157,7 @@ export function Dashboard() {
               {Math.round(((metrics?.creditsEarned || 0) / 30) * 100)}% complete
             </span>
             <span className={`text-xs ${THEME.colors.text.secondary}`}>
-              {30 - (metrics?.creditsEarned || 0)} credits remaining
+              {30 - (metrics?.creditsEarned || 0)} credits remaining until graduation
             </span>
           </div>
         </div>
