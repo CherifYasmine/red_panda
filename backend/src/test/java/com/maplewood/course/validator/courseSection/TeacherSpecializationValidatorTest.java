@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import com.maplewood.common.enums.SemesterName;
 import com.maplewood.course.entity.Course;
-import com.maplewood.course.validator.CourseSectionValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.entity.Semester;
@@ -23,7 +22,7 @@ import com.maplewood.school.entity.Teacher;
 @DisplayName("Teacher Specialization Validation Tests")
 class TeacherSpecializationValidatorTest {
 
-    private CourseSectionValidator validator;
+    private TeacherSpecializationValidator validator;
     private Course course;
     private Teacher teacher;
     private Classroom classroom;
@@ -35,7 +34,7 @@ class TeacherSpecializationValidatorTest {
     @SuppressWarnings("unused")
     @BeforeEach
     void setUp() {
-        validator = new CourseSectionValidator();
+        validator = new TeacherSpecializationValidator();
 
         // Create specializations
         computerScience = new Specialization();
@@ -88,7 +87,7 @@ class TeacherSpecializationValidatorTest {
 
         // Act & Assert
         assertDoesNotThrow(() -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, teacher);
         });
     }
 
@@ -100,7 +99,7 @@ class TeacherSpecializationValidatorTest {
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, teacher);
         });
 
         assertTrue(ex.getMessage().contains("specializes in Engineering"));
@@ -115,7 +114,7 @@ class TeacherSpecializationValidatorTest {
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, teacher);
         });
 
         assertTrue(ex.getMessage().contains("must have specializations defined"));
@@ -129,7 +128,7 @@ class TeacherSpecializationValidatorTest {
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, teacher);
         });
 
         assertTrue(ex.getMessage().contains("must have specializations defined"));

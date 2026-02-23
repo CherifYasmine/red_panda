@@ -9,12 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.maplewood.common.enums.SemesterName;
 import com.maplewood.course.entity.Course;
-import com.maplewood.course.validator.CourseSectionValidator;
-import com.maplewood.school.entity.Classroom;
-import com.maplewood.school.entity.RoomType;
 import com.maplewood.school.entity.Semester;
-import com.maplewood.school.entity.Specialization;
-import com.maplewood.school.entity.Teacher;
 
 /**
  * Unit tests for semester order validation in CourseSectionValidator
@@ -23,14 +18,14 @@ import com.maplewood.school.entity.Teacher;
 @DisplayName("Semester Order Validation Tests")
 class SemesterOrderValidatorTest {
 
-    private CourseSectionValidator validator;
+    private SemesterOrderValidator validator;
     private Course course;
     private Semester semester;
 
     @SuppressWarnings("unused")
     @BeforeEach
     void setUp() {
-        validator = new CourseSectionValidator();
+        validator = new SemesterOrderValidator();
 
         // Create fall course (semester order 1 = fall)
         course = new Course();
@@ -51,31 +46,10 @@ class SemesterOrderValidatorTest {
     @DisplayName("Should pass when fall course is created in fall semester")
     void validateSemesterOrder_ShouldPass_WhenFallCourseInFallSemester() {
         // Arrange: Course is fall, semester is fall
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         assertDoesNotThrow(() -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
     }
 
@@ -86,32 +60,10 @@ class SemesterOrderValidatorTest {
         course.setSemesterOrder(2);  // Spring course
         semester.setOrderInYear(2);   // Spring = 2
         semester.setName(SemesterName.SPRING);
-        
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         assertDoesNotThrow(() -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
     }
 
@@ -122,32 +74,10 @@ class SemesterOrderValidatorTest {
         course.setSemesterOrder(1);  // Fall course
         semester.setOrderInYear(2);   // Spring semester
         semester.setName(SemesterName.SPRING);
-        
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
 
         assertTrue(ex.getMessage().contains("Fall course"));
@@ -161,32 +91,10 @@ class SemesterOrderValidatorTest {
         course.setSemesterOrder(2);  // Spring course
         semester.setOrderInYear(1);  // Fall semester
         semester.setName(SemesterName.FALL);
-        
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
 
         assertTrue(ex.getMessage().contains("Spring course"));
@@ -198,32 +106,10 @@ class SemesterOrderValidatorTest {
     void validateSemesterOrder_ShouldThrowException_WhenCourseSemesterOrderNull() {
         // Arrange: Course with undefined semester order
         course.setSemesterOrder(null);
-        
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
 
         assertTrue(ex.getMessage().contains("must have semester order defined"));
@@ -234,32 +120,10 @@ class SemesterOrderValidatorTest {
     void validateSemesterOrder_ShouldThrowException_WhenSemesterOrderNull() {
         // Arrange: Semester with no order
         semester.setOrderInYear(null);
-        
-        Specialization computerScience = new Specialization();
-        computerScience.setId(1L);
-        computerScience.setName("Computer Science");
-        
-        RoomType computerLab = new RoomType();
-        computerLab.setId(1L);
-        computerLab.setName("Computer Lab");
-        computerScience.setRoomType(computerLab);
-        
-        course.setSpecialization(computerScience);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Classroom classroom = new Classroom();
-        classroom.setId(1L);
-        classroom.setName("Lab A");
-        classroom.setRoomType(computerLab);
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, semester);
         });
 
         assertTrue(ex.getMessage().contains("must have semester order defined"));

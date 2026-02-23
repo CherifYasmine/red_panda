@@ -8,12 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.maplewood.course.entity.Course;
-import com.maplewood.course.validator.CourseSectionValidator;
 import com.maplewood.school.entity.Classroom;
 import com.maplewood.school.entity.RoomType;
-import com.maplewood.school.entity.Semester;
 import com.maplewood.school.entity.Specialization;
-import com.maplewood.school.entity.Teacher;
 
 /**
  * Unit tests for classroom room type validation in CourseSectionValidator
@@ -22,7 +19,7 @@ import com.maplewood.school.entity.Teacher;
 @DisplayName("Classroom Room Type Validation Tests")
 class ClassroomRoomTypeValidatorTest {
 
-    private CourseSectionValidator validator;
+    private ClassroomRoomTypeValidator validator;
     private Course course;
     private Classroom classroom;
     private Specialization computerScience;
@@ -32,7 +29,7 @@ class ClassroomRoomTypeValidatorTest {
     @SuppressWarnings("unused")
     @BeforeEach
     void setUp() {
-        validator = new CourseSectionValidator();
+        validator = new ClassroomRoomTypeValidator();
 
         // Create room types
         computerLabRoomType = new RoomType();
@@ -69,21 +66,10 @@ class ClassroomRoomTypeValidatorTest {
     @DisplayName("Should pass when classroom room type matches course specialization requirement")
     void validateClassroomRoomType_ShouldPass_WhenRoomTypesMatch() {
         // Arrange: Both course and classroom require/have Computer Lab
-        course.setSemesterOrder(1);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Semester semester = new Semester();
-        semester.setId(1L);
-        semester.setOrderInYear(1);
 
         // Act & Assert
         assertDoesNotThrow(() -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, classroom);
         });
     }
 
@@ -91,22 +77,11 @@ class ClassroomRoomTypeValidatorTest {
     @DisplayName("Should throw exception when classroom room type differs from course requirement")
     void validateClassroomRoomType_ShouldThrowException_WhenRoomTypesMismatch() {
         // Arrange: Classroom is Engineering Lab, course requires Computer Lab
-        course.setSemesterOrder(1);
         classroom.setRoomType(engineeringLabRoomType);
-        
-        Teacher teacher = new Teacher();
-        teacher.setId(1L);
-        teacher.setFirstName("John");
-        teacher.setLastName("Doe");
-        teacher.setSpecialization(computerScience);
-        
-        Semester semester = new Semester();
-        semester.setId(1L);
-        semester.setOrderInYear(1);
 
         // Act & Assert
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-            validator.validate(course, teacher, classroom, semester);
+            validator.validate(course, classroom);
         });
 
         assertTrue(ex.getMessage().contains("Engineering Lab"));
