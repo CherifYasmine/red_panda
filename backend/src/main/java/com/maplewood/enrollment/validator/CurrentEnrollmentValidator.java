@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.maplewood.common.enums.CourseHistoryStatus;
+import com.maplewood.common.exception.DuplicateResourceException;
 import com.maplewood.common.exception.EnrollmentValidationException;
 import com.maplewood.common.exception.ScheduleConflictException;
 import com.maplewood.course.entity.Course;
@@ -79,8 +80,7 @@ public class CurrentEnrollmentValidator {
         );
         
         if (courseCount > 0) {
-            throw new EnrollmentValidationException(
-                "DUPLICATE_COURSE",
+            throw new DuplicateResourceException(
                 "Already enrolled in " + enrollment.getCourseSection().getCourse().getName() + 
                  " in this semester. Cannot take the same course twice per semester."
             );
@@ -174,8 +174,7 @@ public class CurrentEnrollmentValidator {
         long currentEnrollments = enrollmentRepository.countByCourseSection(section);
         
         if (currentEnrollments >= capacity) {
-            throw new EnrollmentValidationException(
-                "SECTION_FULL",
+            throw new ScheduleConflictException(
                 "Section has reached maximum capacity (" + capacity + " students)"
             );
         }
@@ -200,8 +199,7 @@ public class CurrentEnrollmentValidator {
         );
         
         if (currentCourses >= 5) {
-            throw new EnrollmentValidationException(
-                "COURSE_LIMIT_EXCEEDED",
+            throw new ScheduleConflictException(
                 "Cannot enroll in more than 5 courses per semester (already enrolled in 5)"
             );
         }

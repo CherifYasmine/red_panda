@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.maplewood.common.enums.CourseType;
+import com.maplewood.common.exception.ScheduleConflictException;
 import com.maplewood.course.entity.CourseSection;
 import com.maplewood.course.entity.CourseSectionMeeting;
 import com.maplewood.course.repository.CourseSectionMeetingRepository;
@@ -209,7 +210,7 @@ public class CourseSectionMeetingValidator {
                 .anyMatch(m -> m.overlaps(meeting));
             
             if (hasConflict) {
-                throw new IllegalArgumentException(
+                throw new ScheduleConflictException(
                     "Teacher " + teacher.getFirstName() + " " + teacher.getLastName() + 
                     " already has a conflicting meeting at this time"
                 );
@@ -231,7 +232,7 @@ public class CourseSectionMeetingValidator {
                 .anyMatch(m -> m.overlaps(meeting));
             
             if (hasConflict) {
-                throw new IllegalArgumentException(
+                throw new ScheduleConflictException(
                     "Classroom " + meeting.getSection().getClassroom().getName() + 
                     " is already booked at this time"
                 );
@@ -275,7 +276,7 @@ public class CourseSectionMeetingValidator {
         int totalHoursOnDay = (int) Math.ceil(totalWithNew / 60.0);
         
         if (totalHoursOnDay > maxDaily) {
-            throw new IllegalArgumentException(
+            throw new ScheduleConflictException(
                 "Teacher would exceed maximum daily hours (" + totalHoursOnDay + 
                 " > " + maxDaily + ") on " + meeting.getDayOfWeekEnum()
             );
