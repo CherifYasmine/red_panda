@@ -94,7 +94,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   ) : (
                     <>
                       <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>{student?.email}</p>
-                      <p className={`text-xs ${THEME.colors.text.muted} mt-1`}>ID: {student?.id}</p>
                     </>
                   )}
                 </div>
