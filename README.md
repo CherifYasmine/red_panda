@@ -48,6 +48,10 @@ A full-stack course planning application built with **Spring Boot** backend and 
 
 ---
 
+## 🏗️ Architecture
+
+For a comprehensive overview of the backend architecture, including SOLID principles, design patterns, and validation layer organization, see [BACKEND_ARCHITECTURE_SUMMARY.md](./BACKEND_ARCHITECTURE_SUMMARY.md).
+
 ## 🚀 Quick Start with Docker
 
 ### Prerequisites
