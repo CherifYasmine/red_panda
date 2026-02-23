@@ -11,6 +11,7 @@ import { AdminPanel } from './pages/AdminPanel';
 import { AdminCourses } from './components/admin/AdminCourses';
 import { AdminCourseDetail } from './components/admin/AdminCourseDetail';
 import { AdminSectionDetail } from './components/admin/AdminSectionDetail';
+import { AdminStudents } from './components/admin/AdminStudents';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ProtectedAdminRoute } from './components/ProtectedAdminRoute';
@@ -125,6 +126,16 @@ const routes: RouteObject[] = [
               <ProtectedAdminRoute>
                 <Layout>
                   <AdminPanel />
+                </Layout>
+              </ProtectedAdminRoute>
+            ),
+          },
+          {
+            path: 'students',
+            element: (
+              <ProtectedAdminRoute>
+                <Layout>
+                  <AdminStudents />
                 </Layout>
               </ProtectedAdminRoute>
             ),

@@ -34,12 +34,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Navigation items - Center */}
+          {/* Navigation items */}
           <nav className="hidden md:flex items-center gap-8">
             {isAdmin ? (
               <>
                 <Link to="/admin/courses" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
                   Manage Courses
+                </Link>
+                <Link to="/admin/students" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
+                  Students
                 </Link>
                 <Link to="/admin/quick" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
                   Quick Actions
@@ -59,9 +62,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Link to="/history" className={`${THEME.colors.text.secondary} hover:${THEME.colors.text.accent} font-medium transition-colors`}>
                   Course History
                 </Link>
-                <Link to="/admin/login" className={`text-orange-600 hover:text-orange-700 font-semibold transition-colors text-sm`}>
+                {/* <Link to="/admin/login" className={`text-orange-600 hover:text-orange-700 font-semibold transition-colors text-sm`}>
                   🔧 Admin
-                </Link>
+                </Link> */}
               </>
             )}
           </nav>
